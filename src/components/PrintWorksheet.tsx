@@ -1,0 +1,134 @@
+import { Problem } from '@/lib/types'
+import { getOperationSymbol } from '@/lib/mathUtils'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Printer } from '@phosphor-icons/react'
+import { useState } from 'react'
+
+interface PrintWorksheetProps {
+  problems: Problem[]
+  difficulty: string
+  operation: string
+  onGenerate: (count: number) => void
+}
+
+export function PrintWorksheet({ problems, difficulty, operation, onGenerate }: PrintWorksheetProps) {
+  const [problemCount, setProblemCount] = useState('20')
+  const [showDialog, setShowDialog] = useState(false)
+
+  const handlePrint = () => {
+    window.print()
+  }
+
+  const handleGenerate = () => {
+    onGenerate(parseInt(problemCount))
+    setShowDialog(true)
+  }
+
+  return (
+    <>
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="gap-2" onClick={() => setShowDialog(true)}>
+            <Printer size={20} weight="duotone" />
+            Print Worksheet
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Worksheet Preview</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="flex gap-4 items-center no-print">
+              <Select value={problemCount} onValueChange={setProblemCount}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 Problems</SelectItem>
+                  <SelectItem value="20">20 Problems</SelectItem>
+                  <SelectItem value="30">30 Problems</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={handleGenerate}>Generate New</Button>
+              <Button onClick={handlePrint} variant="default" className="gap-2 ml-auto">
+                <Printer size={20} />
+                Print
+              </Button>
+            </div>
+
+            <div className="border rounded-lg p-8 bg-white">
+              <WorksheetContent 
+                problems={problems} 
+                difficulty={difficulty}
+                operation={operation}
+              />
+            </div>
+
+            <div className="border rounded-lg p-8 bg-white">
+              <AnswerKey problems={problems} />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
+
+function WorksheetContent({ problems, difficulty, operation }: { 
+  problems: Problem[]
+  difficulty: string
+  operation: string 
+}) {
+  return (
+    <div className="space-y-6">
+      <div className="text-center border-b-2 pb-4">
+        <h1 className="text-3xl font-bold">Math Practice Worksheet</h1>
+        <p className="text-lg text-muted-foreground mt-2">
+          {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} - {operation.charAt(0).toUpperCase() + operation.slice(1)}
+        </p>
+        <div className="mt-4 flex gap-8 justify-center text-sm">
+          <div>Name: ___________________________</div>
+          <div>Date: ___________________________</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-6">
+        {problems.map((problem, index) => (
+          <div key={problem.id} className="flex items-center gap-4 border-b pb-3">
+            <span className="font-medium text-muted-foreground w-8">{index + 1}.</span>
+            <div className="flex items-center gap-3 text-xl">
+              <span>{problem.operand1}</span>
+              <span className="font-bold text-primary">{getOperationSymbol(problem.operation)}</span>
+              <span>{problem.operand2}</span>
+              <span>=</span>
+              <div className="border-b-2 border-foreground/20 w-24 h-8"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function AnswerKey({ problems }: { problems: Problem[] }) {
+  return (
+    <div className="space-y-6">
+      <div className="text-center border-b-2 pb-4">
+        <h2 className="text-2xl font-bold">Answer Key</h2>
+        <p className="text-sm text-muted-foreground mt-1">For teacher/parent use only</p>
+      </div>
+
+      <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
+        {problems.map((problem, index) => (
+          <div key={problem.id} className="text-center">
+            <span className="text-sm text-muted-foreground">{index + 1}.</span>
+            <span className="ml-2 font-semibold">{problem.correctAnswer}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
