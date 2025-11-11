@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { getOperationSymbol, checkAnswer, getHints } from '@/lib/mathUtils'
-import { Lightbulb, Check, X as XIcon, ArrowRight } from '@phosphor-icons/react'
+import { Lightbulb, Check, X as XIcon, ArrowRight, SkipForward } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -56,6 +56,12 @@ export function ProblemCard({
 
   const handleNext = () => {
     onNext()
+  }
+
+  const handleSkip = () => {
+    setSubmitted(true)
+    setIsCorrect(false)
+    onSubmit(0, hintsUsed)
   }
 
   const handleShowHint = () => {
@@ -169,6 +175,20 @@ export function ProblemCard({
                 </Button>
               )}
             </div>
+
+            {!submitted && (
+              <div className="flex justify-center">
+                <Button
+                  onClick={handleSkip}
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 text-muted-foreground"
+                >
+                  <SkipForward size={20} />
+                  Skip this problem
+                </Button>
+              </div>
+            )}
 
             <AnimatePresence>
               {submitted && (
