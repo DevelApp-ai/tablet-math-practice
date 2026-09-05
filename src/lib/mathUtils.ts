@@ -56,7 +56,7 @@ export function generateProblem(
       } else {
         operand1 = randomInt(100, 999)
         operand2 = randomInt(2, 99)
-        correctAnswer = Math.round((operand1 / operand2) * 100) / 100
+        correctAnswer = parseFloat((operand1 / operand2).toFixed(2))
       }
       break
   }
@@ -81,9 +81,17 @@ export function generateProblems(
       ? ['addition', 'subtraction', 'multiplication', 'division']
       : [operationType as Exclude<OperationType, 'mixed'>]
 
-  for (let i = 0; i < count; i++) {
+  const usedProblems = new Set<string>()
+
+  while (problems.length < count) {
     const operation = operations[Math.floor(Math.random() * operations.length)]
-    problems.push(generateProblem(difficulty, operation))
+    const problem = generateProblem(difficulty, operation)
+    const problemKey = `${problem.operand1}-${problem.operand2}-${problem.operation}`
+
+    if (!usedProblems.has(problemKey)) {
+      usedProblems.add(problemKey)
+      problems.push(problem)
+    }
   }
 
   return problems
@@ -96,9 +104,9 @@ function randomInt(min: number, max: number): number {
 export function getOperationSymbol(operation: Exclude<OperationType, 'mixed'>): string {
   const symbols = {
     addition: '+',
-    subtraction: '−',
-    multiplication: '×',
-    division: '÷'
+    subtraction: '\u2212',
+    multiplication: '\u00d7',
+    division: '\u00f7'
   }
   return symbols[operation]
 }
@@ -111,29 +119,42 @@ export function checkAnswer(problem: Problem, userAnswer: number): boolean {
 }
 
 export function getHints(problem: Problem, step: number): string[] {
-  const { operand1, operand2, operation } = problem
+  const { operand1, operand2, operation, correctAnswer } = problem
+  const ones1 = operand1 % 10
+  const ones2 = operand2 % 10
+  const tens1 = Math.floor(operand1 / 10)
+  const tens2 = Math.floor(operand2 / 10)
+
   const hints: Record<string, string[]> = {
     addition: [
-      `Start by looking at the ones place: ${operand1 % 10} + ${operand2 % 10}`,
-      `Add the tens place: ${Math.floor(operand1 / 10)} + ${Math.floor(operand2 / 10)}`,
-      `Combine your results to get the final answer`
+      `What is ${ones1} + ${ones2}?`,
+      `What is ${tens1} + ${tens2}?`,
+      `Add them together: ${tens1 + tens2}0 + ${ones1 + ones2} = ${correctAnswer}`
     ],
     subtraction: [
-      `Look at the ones place: ${operand1 % 10} - ${operand2 % 10}`,
-      operand1 % 10 < operand2 % 10 ? 'You need to borrow from the tens place' : 'No borrowing needed here',
-      `Now subtract the tens place and combine`
+      `What is ${ones1} - ${ones2}?`,
+      ones1 < ones2
+        ? `Since ${ones1} < ${ones2}, borrow 1 from the tens: (${ones1} + 10) - ${ones2} = ${ones1 + 10 - ones2}`
+        : 'No borrowing needed here',
+      ones1 < ones2
+        ? `Now subtract the tens: ${tens1 - 1} - ${tens2}`
+        : `Now subtract the tens: ${tens1} - ${tens2}`
     ],
     multiplication: [
       `Think of this as ${operand1} groups of ${operand2}`,
-      `Or break it down: ${operand1} × ${Math.floor(operand2 / 2)} = ${operand1 * Math.floor(operand2 / 2)}, then add more`,
-      `Multiply and combine your results`
+      `Break it down: ${operand1} \u00d7 ${Math.floor(operand2 / 2)} = ${operand1 * Math.floor(operand2 / 2)}, then add the rest`,
+      `Or: ${Math.floor(operand1 / 2)} \u00d7 ${operand2} = ${Math.floor(operand1 / 2) * operand2}, plus ${operand1 % 2} \u00d7 ${operand2} = ${(operand1 % 2) * operand2}`
     ],
     division: [
       `How many times does ${operand2} fit into ${operand1}?`,
-      `Try estimating: ${operand2} × 10 = ${operand2 * 10}`,
-      `Divide step by step to find the exact answer`
+      `Try estimating: ${operand2} \u00d7 10 = ${operand2 * 10}, which is ${operand2 * 10 <= operand1 ? 'less than' : 'more than'} ${operand1}`,
+      `Divide step by step: ${operand1} \u00f7 ${operand2} = ${correctAnswer}`
     ]
   }
 
   return hints[operation].slice(0, step)
+}
+
+export function formatNumber(num: number): string {
+  return num.toLocaleString('en-US')
 }

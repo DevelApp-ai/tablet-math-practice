@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Problem } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { getOperationSymbol, checkAnswer, getHints } from '@/lib/mathUtils'
+import { getOperationSymbol, checkAnswer, getHints, formatNumber } from '@/lib/mathUtils'
 import { Lightbulb, Check, X as XIcon, ArrowRight, SkipForward } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { PenInput } from './PenInput'
 
 interface ProblemCardProps {
   problem: Problem
@@ -32,6 +32,7 @@ export function ProblemCard({
   const [showHints, setShowHints] = useState(false)
   const [hintStep, setHintStep] = useState(0)
   const [hintsUsed, setHintsUsed] = useState(0)
+  const startTimeRef = useRef<number | null>(null)
 
   useEffect(() => {
     setAnswer('')
@@ -40,6 +41,7 @@ export function ProblemCard({
     setShowHints(false)
     setHintStep(0)
     setHintsUsed(0)
+    startTimeRef.current = null
   }, [problem])
 
   const handleSubmit = () => {
@@ -81,9 +83,9 @@ export function ProblemCard({
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="p-8 space-y-6 max-w-2xl mx-auto">
+      <Card className="p-6 md:p-8 space-y-4 md:space-y-6 w-full md:max-w-2xl mx-auto">
         <div className="flex justify-between items-center">
-          <Badge variant="outline" className="text-base px-4 py-1">
+          <Badge variant="outline" className="text-sm md:text-base px-3 md:px-4 py-1">
             Problem {problemNumber} of {totalProblems}
           </Badge>
           {guidedMode && !submitted && (
@@ -93,6 +95,7 @@ export function ProblemCard({
               onClick={handleShowHint}
               className="gap-2"
               disabled={hintStep >= 3}
+              aria-label={hintStep === 0 ? 'Show hint' : 'Next hint'}
             >
               <Lightbulb size={20} weight="duotone" className="text-accent" />
               {hintStep === 0 ? 'Show Hint' : 'Next Hint'}
@@ -100,11 +103,11 @@ export function ProblemCard({
           )}
         </div>
 
-        <div className="text-center space-y-8">
-          <div className="flex items-center justify-center gap-6 text-5xl md:text-6xl font-bold tracking-wide">
-            <span>{problem.operand1}</span>
+        <div className="text-center space-y-6 md:space-y-8">
+          <div className="flex items-center justify-center gap-4 md:gap-6 text-4xl md:text-6xl font-bold tracking-wide">
+            <span>{formatNumber(problem.operand1)}</span>
             <span className="text-primary">{getOperationSymbol(problem.operation)}</span>
-            <span>{problem.operand2}</span>
+            <span>{formatNumber(problem.operand2)}</span>
             <span>=</span>
             <span className="text-muted-foreground">?</span>
           </div>
@@ -125,7 +128,7 @@ export function ProblemCard({
                     transition={{ delay: index * 0.1 }}
                     className="text-sm text-left"
                   >
-                    💡 {hint}
+                    \ud83d\udca1 {hint}
                   </motion.p>
                 ))}
               </motion.div>
@@ -134,9 +137,8 @@ export function ProblemCard({
 
           <div className="space-y-4">
             <div className="flex gap-4 items-center justify-center">
-              <Input
+              <PenInput
                 id="answer"
-                type="number"
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 onKeyDown={(e) => {
@@ -146,10 +148,16 @@ export function ProblemCard({
                     handleNext()
                   }
                 }}
+                onFocus={() => {
+                  if (!startTimeRef.current) {
+                    startTimeRef.current = Date.now()
+                  }
+                }}
                 placeholder="Your answer"
                 disabled={submitted}
+                aria-label={`Answer for problem ${problemNumber}`}
                 className={cn(
-                  'text-center text-3xl h-20 max-w-xs font-medium',
+                  'max-w-xs md:max-w-sm',
                   submitted && isCorrect && 'border-success border-2 bg-success/10',
                   submitted && !isCorrect && 'border-destructive border-2 bg-destructive/10'
                 )}
@@ -158,19 +166,21 @@ export function ProblemCard({
                 <Button
                   onClick={handleSubmit}
                   size="lg"
-                  className="h-20 px-8 text-lg"
+                  className="h-20 px-6 md:px-8 text-lg"
                   disabled={!answer.trim()}
+                  aria-label="Submit answer"
                 >
                   <Check size={24} weight="bold" />
-                  Check
+                  <span className="ml-2">Check</span>
                 </Button>
               ) : (
                 <Button
                   onClick={handleNext}
                   size="lg"
-                  className="h-20 px-8 text-lg"
+                  className="h-20 px-6 md:px-8 text-lg"
+                  aria-label="Next problem"
                 >
-                  Next
+                  <span className="mr-2">Next</span>
                   <ArrowRight size={24} weight="bold" />
                 </Button>
               )}
@@ -183,6 +193,7 @@ export function ProblemCard({
                   variant="ghost"
                   size="sm"
                   className="gap-2 text-muted-foreground"
+                  aria-label="Skip this problem"
                 >
                   <SkipForward size={20} />
                   Skip this problem
@@ -199,6 +210,8 @@ export function ProblemCard({
                     'p-4 rounded-lg flex items-center justify-center gap-3 text-lg font-medium',
                     isCorrect ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive'
                   )}
+                  role="alert"
+                  aria-live="assertive"
                 >
                   {isCorrect ? (
                     <>
@@ -208,7 +221,7 @@ export function ProblemCard({
                   ) : (
                     <>
                       <XIcon size={32} weight="bold" />
-                      <span>Not quite. The answer is {problem.correctAnswer}</span>
+                      <span>Not quite. The answer is {formatNumber(problem.correctAnswer)}</span>
                     </>
                   )}
                 </motion.div>
