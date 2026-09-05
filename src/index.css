@@ -93,4 +93,52 @@
   @page {
     margin: 1cm;
   }
+  
+  /* Worksheet-specific print styles */
+  .worksheet-content {
+    page-break-inside: avoid;
+  }
+  
+  .worksheet-content h1 {
+    font-size: 24pt;
+    color: black;
+  }
+  
+  .worksheet-content h2 {
+    font-size: 18pt;
+    color: black;
+  }
+  
+  .worksheet-content p {
+    color: black;
+  }
+  
+  .worksheet-content .problem-row {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  .worksheet-content .answer-line {
+    border-bottom: 2px solid black;
+    min-height: 1em;
+  }
+  
+  /* Answer key styling */
+  .answer-key {
+    page-break-before: always;
+    margin-top: 2cm;
+  }
+  
+  .answer-key h2 {
+    font-size: 20pt;
+    color: black;
+  }
+  
+  /* Hide interactive elements */
+  button,
+  input,
+  [role="button"],
+  [role="switch"] {
+    display: none !important;
+  }
 }
