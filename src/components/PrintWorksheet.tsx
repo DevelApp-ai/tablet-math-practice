@@ -1,5 +1,5 @@
 import { Problem } from '@/lib/types'
-import { getOperationSymbol } from '@/lib/mathUtils'
+import { getOperationSymbol, formatNumber } from '@/lib/mathUtils'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -35,7 +35,7 @@ export function PrintWorksheet({ problems, difficulty, operation, onGenerate }: 
             Print Worksheet
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto print-only">
           <DialogHeader>
             <DialogTitle>Worksheet Preview</DialogTitle>
           </DialogHeader>
@@ -59,7 +59,7 @@ export function PrintWorksheet({ problems, difficulty, operation, onGenerate }: 
               </Button>
             </div>
 
-            <div className="border rounded-lg p-8 bg-white">
+            <div className="border rounded-lg p-8 bg-white worksheet-content">
               <WorksheetContent 
                 problems={problems} 
                 difficulty={difficulty}
@@ -67,7 +67,7 @@ export function PrintWorksheet({ problems, difficulty, operation, onGenerate }: 
               />
             </div>
 
-            <div className="border rounded-lg p-8 bg-white">
+            <div className="border rounded-lg p-8 bg-white worksheet-content answer-key">
               <AnswerKey problems={problems} />
             </div>
           </div>
@@ -95,16 +95,16 @@ function WorksheetContent({ problems, difficulty, operation }: {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {problems.map((problem, index) => (
-          <div key={problem.id} className="flex items-center gap-4 border-b pb-3">
+          <div key={problem.id} className="flex items-center gap-3 md:gap-4 border-b pb-3 problem-row">
             <span className="font-medium text-muted-foreground w-8">{index + 1}.</span>
-            <div className="flex items-center gap-3 text-xl">
-              <span>{problem.operand1}</span>
+            <div className="flex items-center gap-2 md:gap-3 text-xl md:text-2xl">
+              <span>{formatNumber(problem.operand1)}</span>
               <span className="font-bold text-primary">{getOperationSymbol(problem.operation)}</span>
-              <span>{problem.operand2}</span>
+              <span>{formatNumber(problem.operand2)}</span>
               <span>=</span>
-              <div className="border-b-2 border-foreground/20 w-24 h-8"></div>
+              <div className="border-b-2 border-foreground/20 w-24 md:w-32 h-8 answer-line"></div>
             </div>
           </div>
         ))}
@@ -121,11 +121,11 @@ function AnswerKey({ problems }: { problems: Problem[] }) {
         <p className="text-sm text-muted-foreground mt-1">For teacher/parent use only</p>
       </div>
 
-      <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4">
         {problems.map((problem, index) => (
           <div key={problem.id} className="text-center">
             <span className="text-sm text-muted-foreground">{index + 1}.</span>
-            <span className="ml-2 font-semibold">{problem.correctAnswer}</span>
+            <span className="ml-2 font-semibold">{formatNumber(problem.correctAnswer)}</span>
           </div>
         ))}
       </div>

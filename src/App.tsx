@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useState, useEffect, useMemo } from 'react'
 import { DifficultyLevel, OperationType, Problem, PracticeSession } from '@/lib/types'
 import { generateProblems } from '@/lib/mathUtils'
 import { DifficultySelect } from '@/components/DifficultySelect'
@@ -18,20 +17,38 @@ import { AnimatePresence } from 'framer-motion'
 import { toast, Toaster } from 'sonner'
 
 function App() {
-  const [sessionHistory, setSessionHistory] = useKV<PracticeSession[]>('session-history', [])
+  // Load session history from localStorage
+  const [sessionHistory, setSessionHistory] = useState<PracticeSession[]>(() => {
+    const saved = localStorage.getItem('session-history')
+    return saved ? JSON.parse(saved) : []
+  })
   const [currentSession, setCurrentSession] = useState<PracticeSession | null>(null)
   const [difficulty, setDifficulty] = useState<DifficultyLevel | null>(null)
   const [operationType, setOperationType] = useState<OperationType>('addition')
   const [guidedMode, setGuidedMode] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
-  const [startTime, setStartTime] = useState<number>(0)
+  const [startTime, setStartTime] = useState<number | null>(null)
   const [showStats, setShowStats] = useState(false)
 
+  // Save session history to localStorage
+  useEffect(() => {
+    localStorage.setItem('session-history', JSON.stringify(sessionHistory))
+  }, [sessionHistory])
+
+  // Start timer when problem changes
   useEffect(() => {
     if (currentSession && currentSession.problems[currentSession.currentProblemIndex]) {
       setStartTime(Date.now())
     }
   }, [currentSession?.currentProblemIndex])
+
+  // Memoize problem generation
+  const memoizedProblems = useMemo(() => {
+    if (difficulty) {
+      return generateProblems(10, difficulty, operationType)
+    }
+    return []
+  }, [difficulty, operationType])
 
   const startSession = (selectedDifficulty: DifficultyLevel) => {
     setDifficulty(selectedDifficulty)
@@ -60,7 +77,7 @@ function App() {
   }
 
   const handleSubmitAnswer = (answer: number, hintsUsed: number) => {
-    if (!currentSession) return
+    if (!currentSession || startTime === null) return
 
     const currentProblem = currentSession.problems[currentSession.currentProblemIndex]
     const timeSpent = Math.floor((Date.now() - startTime) / 1000)
@@ -91,7 +108,7 @@ function App() {
         incorrectAnswers,
         accuracy: totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0,
         totalTime,
-        averageTime: totalAnswered > 0 ? totalTime / totalAnswered : 0
+        averageTime: totalAnswered > 0 ? Math.round(totalTime / totalAnswered) : 0
       }
     }
 
@@ -121,6 +138,14 @@ function App() {
   }
 
   const handleRestart = () => {
+    if (currentSession) {
+      const unanswered = currentSession.problems.filter(p => p.userAnswer === undefined).length
+      if (unanswered > 3) {
+        if (!window.confirm(`You have ${unanswered} unanswered problems. Exit anyway?`)) {
+          return
+        }
+      }
+    }
     setCurrentSession(null)
     setDifficulty(null)
     setShowStats(false)
@@ -147,6 +172,13 @@ function App() {
           }
         })
       }
+    }
+  }
+
+  const handleGuidedModeChange = (checked: boolean) => {
+    setGuidedMode(checked)
+    if (currentSession) {
+      setCurrentSession({ ...currentSession, guidedMode: checked })
     }
   }
 
@@ -194,7 +226,7 @@ function App() {
                 <Switch
                   id="guided-mode"
                   checked={guidedMode}
-                  onCheckedChange={setGuidedMode}
+                  onCheckedChange={handleGuidedModeChange}
                 />
                 <Label htmlFor="guided-mode" className="text-base cursor-pointer">
                   Enable Guided Mode (with hints)
@@ -221,11 +253,11 @@ function App() {
         ) : showStats ? (
           <div className="max-w-4xl mx-auto space-y-8">
             <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold">Session Complete! 🎉</h2>
+              <h2 className="text-3xl font-bold">Session Complete! \ud83c\udf89</h2>
               <p className="text-muted-foreground">Here's how you did:</p>
             </div>
             
-            {currentSession && <StatsDashboard stats={currentSession.stats} />}
+            {currentSession && <StatsDashboard stats={currentSession.stats} history={sessionHistory} />}
             
             <div className="flex gap-4 justify-center">
               <Button onClick={handleNewSession} size="lg" className="gap-2">
@@ -239,7 +271,7 @@ function App() {
         ) : currentSession && currentProblem ? (
           <div className="space-y-8">
             <div className="flex justify-between items-center no-print">
-              <StatsDashboard stats={currentSession.stats} />
+              <StatsDashboard stats={currentSession.stats} history={sessionHistory} />
             </div>
             
             <Separator className="no-print" />
@@ -250,7 +282,7 @@ function App() {
                 problem={currentProblem}
                 problemNumber={currentSession.currentProblemIndex + 1}
                 totalProblems={currentSession.problems.length}
-                guidedMode={guidedMode}
+                guidedMode={currentSession.guidedMode}
                 onSubmit={handleSubmitAnswer}
                 onNext={handleNextProblem}
               />
@@ -271,6 +303,12 @@ function App() {
       <AnimatePresence>
         {showSuccess && <SuccessAnimation />}
       </AnimatePresence>
+      
+      {/* Screen reader announcements */}
+      <div aria-live="polite" className="sr-only">
+        {showSuccess && 'Correct! Well done!'}
+        {currentSession && currentProblem && `Problem ${currentSession.currentProblemIndex + 1} of ${currentSession.problems.length}`}
+      </div>
     </div>
   )
 }
