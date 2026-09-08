@@ -59,7 +59,7 @@ export function PrintWorksheet({ problems, difficulty, operation, onGenerate }: 
               </Button>
             </div>
 
-            <div className="border rounded-lg p-8 bg-white worksheet-content">
+            <div className="border-0 rounded-lg p-4 md:p-8 bg-white worksheet-content print:w-full print:p-0">
               <WorksheetContent 
                 problems={problems} 
                 difficulty={difficulty}
@@ -67,7 +67,7 @@ export function PrintWorksheet({ problems, difficulty, operation, onGenerate }: 
               />
             </div>
 
-            <div className="border rounded-lg p-8 bg-white worksheet-content answer-key">
+            <div className="border-0 rounded-lg p-4 md:p-8 bg-white worksheet-content answer-key print:w-full print:p-0">
               <AnswerKey problems={problems} />
             </div>
           </div>
@@ -95,16 +95,16 @@ function WorksheetContent({ problems, difficulty, operation }: {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 print:grid-cols-2 print:gap-2">
         {problems.map((problem, index) => (
-          <div key={problem.id} className="flex items-center gap-3 md:gap-4 border-b pb-3 problem-row">
-            <span className="font-medium text-muted-foreground w-8">{index + 1}.</span>
-            <div className="flex items-center gap-2 md:gap-3 text-xl md:text-2xl">
-              <span>{formatNumber(problem.operand1)}</span>
-              <span className="font-bold text-primary">{getOperationSymbol(problem.operation)}</span>
-              <span>{formatNumber(problem.operand2)}</span>
-              <span>=</span>
-              <div className="border-b-2 border-foreground/20 w-24 md:w-32 h-8 answer-line"></div>
+          <div key={problem.id} className="flex items-center gap-3 md:gap-4 border-b pb-3 problem-row print:gap-1 print:pb-1">
+            <span className="font-medium text-muted-foreground w-8 print:text-black print:w-6">{index + 1}.</span>
+            <div className="flex items-center gap-2 md:gap-3 text-xl md:text-2xl print:text-base">
+              <span className="print:text-black">{formatNumber(problem.operand1)}</span>
+              <span className="font-bold text-primary print:text-black">{getOperationSymbol(problem.operation)}</span>
+              <span className="print:text-black">{formatNumber(problem.operand2)}</span>
+              <span className="print:text-black">=</span>
+              <div className="border-b-2 border-foreground/20 w-24 md:w-32 h-8 answer-line print:border-b-2 print:border-black print:w-20 print:h-6"></div>
             </div>
           </div>
         ))}
@@ -121,11 +121,11 @@ function AnswerKey({ problems }: { problems: Problem[] }) {
         <p className="text-sm text-muted-foreground mt-1">For teacher/parent use only</p>
       </div>
 
-      <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4">
+      <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4 print:grid-cols-8 print:gap-1">
         {problems.map((problem, index) => (
-          <div key={problem.id} className="text-center">
-            <span className="text-sm text-muted-foreground">{index + 1}.</span>
-            <span className="ml-2 font-semibold">{formatNumber(problem.correctAnswer)}</span>
+          <div key={problem.id} className="text-center print:text-xs">
+            <span className="text-sm text-muted-foreground print:text-black">{index + 1}.</span>
+            <span className="ml-2 font-semibold print:text-black">{formatNumber(problem.correctAnswer)}</span>
           </div>
         ))}
       </div>
