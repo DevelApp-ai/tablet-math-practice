@@ -116,7 +116,10 @@ function App() {
 
     if (isCorrect) {
       setShowSuccess(true)
-      setTimeout(() => setShowSuccess(false), 800)
+      setTimeout(() => {
+        setShowSuccess(false)
+        handleNextProblem()
+      }, 800)
     }
   }
 
