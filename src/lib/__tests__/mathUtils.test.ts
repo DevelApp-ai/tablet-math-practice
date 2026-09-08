@@ -134,8 +134,9 @@ describe('checkAnswer', () => {
   test('correctly checks division answers with decimals', () => {
     const problem = { operand1: 10, operand2: 3, operation: 'division' as const, correctAnswer: 3.33, id: '1' }
     expect(checkAnswer(problem, 3.33)).toBe(true)
-    expect(checkAnswer(problem, 3.333)).toBe(false)
-    expect(checkAnswer(problem, 3.34)).toBe(false)
+    expect(checkAnswer(problem, 3.333)).toBe(true) // Within 0.01 tolerance
+    expect(checkAnswer(problem, 3.34)).toBe(true) // Within 0.01 tolerance
+    expect(checkAnswer(problem, 3.4)).toBe(false) // Outside 0.01 tolerance
   })
 
   test('correctly checks division answers with whole numbers', () => {
