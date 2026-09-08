@@ -17,12 +17,15 @@ import { AnimatePresence } from 'framer-motion'
 import { toast, Toaster } from 'sonner'
 
 function App() {
-  // Load session history from localStorage
+  // Load session history and current session from localStorage
   const [sessionHistory, setSessionHistory] = useState<PracticeSession[]>(() => {
     const saved = localStorage.getItem('session-history')
     return saved ? JSON.parse(saved) : []
   })
-  const [currentSession, setCurrentSession] = useState<PracticeSession | null>(null)
+  const [currentSession, setCurrentSession] = useState<PracticeSession | null>(() => {
+    const saved = localStorage.getItem('current-session')
+    return saved ? JSON.parse(saved) : null
+  })
   const [difficulty, setDifficulty] = useState<DifficultyLevel | null>(null)
   const [operationType, setOperationType] = useState<OperationType>('addition')
   const [guidedMode, setGuidedMode] = useState(false)
@@ -30,10 +33,18 @@ function App() {
   const [startTime, setStartTime] = useState<number | null>(null)
   const [showStats, setShowStats] = useState(false)
 
-  // Save session history to localStorage
+  // Save session history and current session to localStorage
   useEffect(() => {
     localStorage.setItem('session-history', JSON.stringify(sessionHistory))
   }, [sessionHistory])
+  
+  useEffect(() => {
+    if (currentSession) {
+      localStorage.setItem('current-session', JSON.stringify(currentSession))
+    } else {
+      localStorage.removeItem('current-session')
+    }
+  }, [currentSession])
 
   // Start timer when problem changes
   useEffect(() => {
@@ -50,9 +61,9 @@ function App() {
     return []
   }, [difficulty, operationType])
 
-  const startSession = (selectedDifficulty: DifficultyLevel) => {
+  const startSession = (selectedDifficulty: DifficultyLevel, problemCount: number = 20) => {
     setDifficulty(selectedDifficulty)
-    const problems = generateProblems(10, selectedDifficulty, operationType)
+    const problems = generateProblems(problemCount, selectedDifficulty, operationType)
     
     const session: PracticeSession = {
       id: crypto.randomUUID(),
@@ -66,7 +77,9 @@ function App() {
         incorrectAnswers: 0,
         accuracy: 0,
         totalTime: 0,
-        averageTime: 0
+        averageTime: 0,
+        currentStreak: 0,
+        longestStreak: 0
       },
       startTime: Date.now(),
       guidedMode
@@ -99,6 +112,12 @@ function App() {
     const totalAnswered = correctAnswers + incorrectAnswers
     const totalTime = updatedProblems.reduce((sum, p) => sum + (p.timeSpent || 0), 0)
 
+    // Calculate streak
+    const previousProblem = currentSession.problems[currentSession.currentProblemIndex - 1]
+    const previousWasCorrect = previousProblem ? previousProblem.isCorrect === true : false
+    const newStreak = isCorrect ? (previousWasCorrect ? (currentSession.stats.currentStreak || 0) + 1 : 1) : 0
+    const longestStreak = Math.max(currentSession.stats.longestStreak || 0, newStreak)
+
     const updatedSession: PracticeSession = {
       ...currentSession,
       problems: updatedProblems,
@@ -108,7 +127,9 @@ function App() {
         incorrectAnswers,
         accuracy: totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0,
         totalTime,
-        averageTime: totalAnswered > 0 ? Math.round(totalTime / totalAnswered) : 0
+        averageTime: totalAnswered > 0 ? Math.round(totalTime / totalAnswered) : 0,
+        currentStreak: newStreak,
+        longestStreak: longestStreak
       }
     }
 
@@ -152,6 +173,7 @@ function App() {
     setCurrentSession(null)
     setDifficulty(null)
     setShowStats(false)
+    localStorage.removeItem('current-session')
   }
 
   const handleNewSession = () => {
@@ -171,7 +193,14 @@ function App() {
           currentProblemIndex: 0,
           stats: {
             ...currentSession.stats,
-            totalProblems: problems.length
+            totalProblems: problems.length,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            accuracy: 0,
+            totalTime: 0,
+            averageTime: 0,
+            currentStreak: 0,
+            longestStreak: 0
           }
         })
       }

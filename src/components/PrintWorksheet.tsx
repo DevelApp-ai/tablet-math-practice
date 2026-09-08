@@ -14,7 +14,7 @@ interface PrintWorksheetProps {
 }
 
 export function PrintWorksheet({ problems, difficulty, operation, onGenerate }: PrintWorksheetProps) {
-  const [problemCount, setProblemCount] = useState('20')
+  const [problemCount, setProblemCount] = useState('10')
   const [showDialog, setShowDialog] = useState(false)
 
   const handlePrint = () => {

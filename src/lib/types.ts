@@ -20,6 +20,8 @@ export interface SessionStats {
   accuracy: number
   totalTime: number
   averageTime: number
+  currentStreak?: number
+  longestStreak?: number
 }
 
 export interface PracticeSession {

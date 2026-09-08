@@ -62,6 +62,16 @@ export function StatsDashboard({ stats, history = [] }: StatsDashboardProps) {
       color: 'text-accent'
     }
   ]
+  
+  // Add streak card if streak data exists
+  if (stats.currentStreak !== undefined) {
+    statCards.push({
+      label: 'Streak',
+      value: stats.currentStreak > 0 ? stats.currentStreak : 0,
+      icon: TrendingUp,
+      color: 'text-success'
+    })
+  }
 
   // Calculate overall stats from history
   const totalSessions = history.length

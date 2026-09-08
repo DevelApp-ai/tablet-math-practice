@@ -5,7 +5,7 @@ import { Brain, RocketLaunch, Lightning } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 
 interface DifficultySelectProps {
-  onSelect: (difficulty: DifficultyLevel) => void
+  onSelect: (difficulty: DifficultyLevel, problemCount?: number) => void
 }
 
 const difficulties = [
@@ -52,7 +52,7 @@ export function DifficultySelect({ onSelect }: DifficultySelectProps) {
             >
               <Card
                 className="p-6 cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 border-2 hover:border-primary"
-                onClick={() => onSelect(diff.level)}
+                onClick={() => onSelect(diff.level, 10)}
               >
                 <div className="flex flex-col items-center text-center space-y-4">
                   <div className={`${diff.color} bg-secondary/30 p-4 rounded-full`}>
