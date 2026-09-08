@@ -32,14 +32,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name: Install missing dependencies
-        run: npm install tw-animate-css @radix-ui/colors lucide-react
-      
       - name: Build
         run: npm run build
         env:
           NODE_ENV: production
           BASE_URL: /tablet-math-practice/
+      
+      - name: Fix asset paths in index.html
+        run: |
+          # Replace leading / with /tablet-math-practice/ in index.html
+          sed -i 's|src="/assets/|src="/tablet-math-practice/assets/|g' dist/index.html
+          sed -i 's|href="/assets/|href="/tablet-math-practice/assets/|g' dist/index.html
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
