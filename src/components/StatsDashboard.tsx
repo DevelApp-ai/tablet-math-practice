@@ -1,7 +1,7 @@
 import { SessionStats, PracticeSession } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { CheckCircle, XCircle, Clock, Target, TrendingUp, Calendar, BarChart } from '@phosphor-icons/react'
+import { CheckCircle, XCircle, Clock, Target, Calendar, Flame } from '@phosphor-icons/react'
 import {
   LineChart,
   Line,
@@ -68,8 +68,18 @@ export function StatsDashboard({ stats, history = [] }: StatsDashboardProps) {
     statCards.push({
       label: 'Streak',
       value: stats.currentStreak > 0 ? stats.currentStreak : 0,
-      icon: TrendingUp,
-      color: 'text-success'
+      icon: Flame,
+      color: 'text-orange-500'
+    })
+  }
+  
+  // Add longest streak if available
+  if (stats.longestStreak !== undefined && stats.longestStreak > 0) {
+    statCards.push({
+      label: 'Longest Streak',
+      value: stats.longestStreak,
+      icon: Flame,
+      color: 'text-purple-500'
     })
   }
 
