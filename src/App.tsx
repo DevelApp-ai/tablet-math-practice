@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { DifficultyLevel, OperationType, Problem, PracticeSession } from '@/lib/types'
+import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile } from '@/lib/types'
 import { generateProblems } from '@/lib/mathUtils'
 import { DifficultySelect } from '@/components/DifficultySelect'
 import { OperationSelect } from '@/components/OperationSelect'
@@ -7,14 +7,33 @@ import { ProblemCard } from '@/components/ProblemCard'
 import { StatsDashboard } from '@/components/StatsDashboard'
 import { PrintWorksheet } from '@/components/PrintWorksheet'
 import { SuccessAnimation } from '@/components/SuccessAnimation'
+import { XPProgressBar } from '@/components/gamification/XPProgressBar'
+import { LevelBadge } from '@/components/gamification/LevelBadge'
+import { BadgeDisplay } from '@/components/gamification/BadgeDisplay'
+import { StreakDisplay } from '@/components/gamification/StreakDisplay'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
+import { Badge as UIBadge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { ArrowLeft, GraduationCap, ChartBar } from '@phosphor-icons/react'
+import { ArrowLeft, GraduationCap, ChartBar, Trophy, Flame } from '@phosphor-icons/react'
 import { AnimatePresence } from 'framer-motion'
 import { toast, Toaster } from 'sonner'
+import {
+  initializeUserProfile,
+  loadUserProfile,
+  saveUserProfile,
+  calculateXPForProblem,
+  calculateSessionXP,
+  addXPToProfile,
+  calculateNewStreak,
+  updateDailyStreak,
+  getReturnBonus,
+  claimReturnBonus,
+  checkBadges,
+  addBadgesToProfile,
+  calculatePerfectSessionBonus,
+} from '@/lib/scoring'
 
 function App() {
   // Load session history and current session from localStorage
@@ -32,6 +51,17 @@ function App() {
   const [showSuccess, setShowSuccess] = useState(false)
   const [startTime, setStartTime] = useState<number | null>(null)
   const [showStats, setShowStats] = useState(false)
+  const [showGamification, setShowGamification] = useState(false)
+  
+  // Load user profile for gamification
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
+    return loadUserProfile()
+  })
+
+  // Save user profile when it changes
+  useEffect(() => {
+    saveUserProfile(userProfile)
+  }, [userProfile])
 
   // Save session history and current session to localStorage
   useEffect(() => {
@@ -64,6 +94,21 @@ function App() {
   const startSession = (selectedDifficulty: DifficultyLevel, problemCount: number = 20) => {
     setDifficulty(selectedDifficulty)
     const problems = generateProblems(problemCount, selectedDifficulty, operationType)
+    
+    // Update daily streak when starting a new session
+    const updatedDailyStreak = updateDailyStreak(userProfile.dailyStreak, new Date().toISOString().split('T')[0])
+    const updatedProfile = { ...userProfile, dailyStreak: updatedDailyStreak }
+    setUserProfile(updatedProfile)
+    
+    // Check for return bonus
+    const returnBonus = getReturnBonus(updatedProfile.dailyStreak)
+    if (returnBonus > 0) {
+      const profileWithBonus = addXPToProfile(updatedProfile, returnBonus)
+      setUserProfile(claimReturnBonus(profileWithBonus.dailyStreak))
+      toast.success(`+${returnBonus} XP Return Bonus!`, {
+        description: 'Welcome back! Here is your return bonus.',
+      })
+    }
     
     const session: PracticeSession = {
       id: crypto.randomUUID(),
@@ -115,9 +160,13 @@ function App() {
     // Calculate streak
     const previousProblem = currentSession.problems[currentSession.currentProblemIndex - 1]
     const previousWasCorrect = previousProblem ? previousProblem.isCorrect === true : false
-    const newStreak = isCorrect ? (previousWasCorrect ? (currentSession.stats.currentStreak || 0) + 1 : 1) : 0
+    const currentStreak = currentSession.stats.currentStreak || 0
+    const newStreak = calculateNewStreak(isCorrect, previousWasCorrect, currentStreak)
     const longestStreak = Math.max(currentSession.stats.longestStreak || 0, newStreak)
 
+    // Calculate XP for this problem
+    const xpEarned = calculateXPForProblem(isCorrect, timeSpent * 1000, currentStreak)
+    
     const updatedSession: PracticeSession = {
       ...currentSession,
       problems: updatedProblems,
@@ -134,6 +183,17 @@ function App() {
     }
 
     setCurrentSession(updatedSession)
+
+    // Update user profile with XP
+    if (isCorrect && xpEarned > 0) {
+      const updatedProfile = addXPToProfile(userProfile, xpEarned)
+      setUserProfile(updatedProfile)
+      
+      // Show XP earned toast
+      toast.success(`+${xpEarned} XP!`, {
+        description: isCorrect ? 'Correct answer!' : undefined,
+      })
+    }
 
     if (isCorrect) {
       setShowSuccess(true)
@@ -153,6 +213,39 @@ function App() {
         currentProblemIndex: currentSession.currentProblemIndex + 1
       })
     } else {
+      // Session complete - check for badges and add XP
+      if (currentSession.stats.accuracy === 100) {
+        const perfectBonus = calculatePerfectSessionBonus(currentSession.stats)
+        if (perfectBonus > 0) {
+          const updatedProfile = addXPToProfile(userProfile, perfectBonus)
+          setUserProfile(updatedProfile)
+          toast.success(`+${perfectBonus} XP Perfect Session Bonus!`, {
+            description: 'All answers correct!',
+          })
+        }
+      }
+      
+      // Check for newly earned badges
+      const newBadges = checkBadges(currentSession.stats, userProfile, currentSession.problems)
+      if (newBadges.length > 0) {
+        const profileWithBadges = addBadgesToProfile(userProfile, newBadges)
+        setUserProfile(profileWithBadges)
+        
+        newBadges.forEach((badge) => {
+          toast.success(`Badge Earned: ${badge.name}!`, {
+            description: badge.description,
+            duration: 5000,
+          })
+        })
+      }
+      
+      // Add session XP to profile
+      const sessionXP = calculateSessionXP(currentSession.stats, currentSession.problems)
+      if (sessionXP > 0) {
+        const updatedProfile = addXPToProfile(userProfile, sessionXP)
+        setUserProfile(updatedProfile)
+      }
+      
       setSessionHistory((prev) => [...(prev || []), currentSession])
       setShowStats(true)
       toast.success('Session Complete!', {
@@ -230,9 +323,18 @@ function App() {
             
             {currentSession && !showStats && (
               <div className="flex items-center gap-4">
-                <Badge variant="secondary" className="text-sm px-3 py-1">
+                <UIBadge variant="secondary" className="text-sm px-3 py-1">
                   {difficulty?.charAt(0).toUpperCase()}{difficulty?.slice(1)}
-                </Badge>
+                </UIBadge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowGamification(!showGamification)}
+                  className="flex items-center gap-1"
+                >
+                  <Trophy size={18} />
+                  Gamification
+                </Button>
                 <Button variant="ghost" size="sm" onClick={handleRestart}>
                   <ArrowLeft size={20} />
                   Exit
@@ -242,6 +344,43 @@ function App() {
           </div>
         </div>
       </header>
+
+      {/* Gamification Sidebar (Slide-in Panel) */}
+      {showGamification && currentSession && (
+        <div className="fixed top-0 right-0 z-50 w-80 h-full bg-white dark:bg-gray-900 shadow-2xl transform translate-x-0 transition-transform duration-300 ease-in-out no-print">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                Gamification
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowGamification(false)}
+                className="p-1"
+              >
+                <span className="text-xl">×</span>
+              </Button>
+            </div>
+            
+            {/* User Profile Summary */}
+            <div className="space-y-4">
+              <LevelBadge profile={userProfile} showLabel={false} />
+              <XPProgressBar profile={userProfile} />
+              <StreakDisplay profile={userProfile} sessionStats={currentSession.stats} />
+              <BadgeDisplay profile={userProfile} showOnlyEarned={true} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Overlay for gamification panel */}
+      {showGamification && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 no-print"
+          onClick={() => setShowGamification(false)}
+        />
+      )}
 
       <main className="container mx-auto px-4 py-8 md:py-12">
         {!difficulty ? (
