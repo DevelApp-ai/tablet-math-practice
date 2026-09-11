@@ -1,20 +1,24 @@
 import { forwardRef } from 'react'
 import { cn } from '@/lib/utils'
+import { shouldAcceptPointer } from '@/lib/canvasBackground'
 
 export interface PenInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   onPenInput?: (value: string) => void
+  palmRejection?: boolean
 }
 
 export const PenInput = forwardRef<HTMLInputElement, PenInputProps>(
-  ({ className, type = 'text', onPenInput, onChange, ...props }, ref) => {
+  ({ className, type = 'text', onPenInput, onChange, palmRejection = false, ...props }, ref) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (onChange) onChange(e)
       if (onPenInput) onPenInput(e.target.value)
     }
 
     const handlePointerDown = (e: React.PointerEvent<HTMLInputElement>) => {
-      // Ensure pen/stylus input gets focus
-      if (e.pointerType === 'pen') {
+      // When palm rejection is on, ignore broad capacitive touch so a resting
+      // palm doesn't steal focus from the active stylus; otherwise focus on pen.
+      if (!shouldAcceptPointer(e.pointerType, palmRejection)) return
+      if (e.pointerType === 'pen' || !palmRejection) {
         e.currentTarget.focus()
       }
     }

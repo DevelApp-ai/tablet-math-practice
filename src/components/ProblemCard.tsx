@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
-import { Problem, PresentationMode } from '@/lib/types'
+import { Problem, PresentationMode, CanvasBackground } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { getOperationSymbol, checkAnswer, getHints, formatNumber } from '@/lib/mathUtils'
 import { supportsVerticalLayout } from '@/lib/verticalMath'
 import { VerticalAlgorithm } from '@/components/workflow/VerticalAlgorithm'
+import { Scratchpad } from '@/components/canvas/Scratchpad'
 import { Lightbulb, Check, X as XIcon, ArrowRight, SkipForward } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -17,6 +18,9 @@ interface ProblemCardProps {
   totalProblems: number
   guidedMode: boolean
   presentationMode: PresentationMode
+  canvasBackground: CanvasBackground
+  scratchpadEnabled: boolean
+  palmRejection: boolean
   onSubmit: (answer: number, hintsUsed: number) => void
   onNext: () => void
 }
@@ -27,6 +31,9 @@ export function ProblemCard({
   totalProblems,
   guidedMode,
   presentationMode,
+  canvasBackground,
+  scratchpadEnabled,
+  palmRejection,
   onSubmit,
   onNext
 }: ProblemCardProps) {
@@ -162,6 +169,7 @@ export function ProblemCard({
               <PenInput
                 id="answer"
                 value={answer}
+                palmRejection={palmRejection}
                 onChange={(e) => setAnswer(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !submitted) {
@@ -251,6 +259,19 @@ export function ProblemCard({
             </AnimatePresence>
           </div>
         </div>
+
+        {scratchpadEnabled && !submitted && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground">
+              Scratchpad
+            </p>
+            <Scratchpad
+              canvasBackground={canvasBackground}
+              palmRejection={palmRejection}
+              className="h-48 md:h-56"
+            />
+          </div>
+        )}
       </Card>
     </motion.div>
   )

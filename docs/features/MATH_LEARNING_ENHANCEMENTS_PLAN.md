@@ -166,7 +166,7 @@ Re-ordered to front-load the two highest-impact, lowest-risk items the doc itsel
 | Phase | Milestone | Key files | Effort | Depends on | Status |
 |---|---|---|---|---|---|
 | **1** | Vertical algorithm layout + carry/borrow registers; `PresentationMode` in `UserSettings` | `VerticalAlgorithm.tsx`, `ProblemCard.tsx`, `types.ts` | 3–5d | — | ✅ In progress (PR #39) |
-| **2** | Graph/grid canvas background selector + palm-rejection `pointerType` filters; scratchpad zone via `react-resizable-panels` | `CanvasGridSelector.tsx`, `PenInput.tsx`, `ProblemCard.tsx` | 3–4d | Phase 1 | ⬜ |
+| **2** | Graph/grid canvas background selector + palm-rejection `pointerType` filters; scratchpad zone via `react-resizable-panels` | `CanvasGridSelector.tsx`, `PenInput.tsx`, `ProblemCard.tsx` | 3–4d | Phase 1 | ✅ In progress (PR #40) |
 | **3** | Diagnostic error classification + tiered `hintsEngine` + `BugFeedbackBanner`/`HintAccordion` | `errorPatterns.ts`, `hintsEngine.ts`, `BugFeedbackBanner.tsx` | 4–6d | Phase 1 | ⬜ |
 | **4** | Mistake Vault (Leitner queue in `localStorage`) + Mastery/Fluency session modes + Remediation Challenge | `spacedRepetition.ts`, `MistakeVaultModal.tsx`, `App.tsx` | 5–7d | Phase 3 | ⬜ |
 | **5** | Ten-frames + number lines + array grids (beginner/intermediate); full ink-capture layer + stroke replay | `TenFrame.tsx`, `NumberLine.tsx`, `ArrayGrid.tsx`, `StrokeReplayViewer.tsx` | 6–9d | Phases 2, 4 | ⬜ |

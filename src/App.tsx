@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile, PresentationMode } from '@/lib/types'
+import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile, PresentationMode, CanvasBackground } from '@/lib/types'
 import { generateProblems } from '@/lib/mathUtils'
 import { DifficultySelect } from '@/components/DifficultySelect'
 import { OperationSelect } from '@/components/OperationSelect'
@@ -16,6 +16,7 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Badge as UIBadge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { CanvasGridSelector } from '@/components/canvas/CanvasGridSelector'
 import { ArrowLeft, GraduationCap, ChartBar, Trophy, Flame } from '@phosphor-icons/react'
 import { AnimatePresence } from 'framer-motion'
 import { toast, Toaster } from 'sonner'
@@ -314,6 +315,15 @@ function App() {
     })
   }
 
+  const handleSettingsChange = (
+    patch: Partial<Pick<UserProfile['settings'], 'canvasBackground' | 'scratchpadEnabled' | 'palmRejection'>>
+  ) => {
+    setUserProfile({
+      ...userProfile,
+      settings: { ...userProfile.settings, ...patch },
+    })
+  }
+
   const currentProblem = currentSession?.problems[currentSession.currentProblemIndex]
 
   return (
@@ -423,6 +433,41 @@ function App() {
                   Vertical Layout (column math with carry/borrow)
                 </Label>
               </div>
+
+              <div className="flex items-center justify-center gap-3 pt-4">
+                <Switch
+                  id="scratchpad-mode"
+                  checked={userProfile.settings.scratchpadEnabled}
+                  onCheckedChange={(checked) =>
+                    handleSettingsChange({ scratchpadEnabled: checked })
+                  }
+                />
+                <Label htmlFor="scratchpad-mode" className="text-base cursor-pointer">
+                  Show Scratchpad (rough-work zone)
+                </Label>
+              </div>
+
+              <div className="flex items-center justify-center gap-3 pt-4">
+                <Switch
+                  id="palm-rejection"
+                  checked={userProfile.settings.palmRejection}
+                  onCheckedChange={(checked) =>
+                    handleSettingsChange({ palmRejection: checked })
+                  }
+                />
+                <Label htmlFor="palm-rejection" className="text-base cursor-pointer">
+                  Palm Rejection (ignore touch while using stylus)
+                </Label>
+              </div>
+
+              <div className="pt-4 flex justify-center">
+                <CanvasGridSelector
+                  value={userProfile.settings.canvasBackground}
+                  onChange={(background) =>
+                    handleSettingsChange({ canvasBackground: background })
+                  }
+                />
+              </div>
             </div>
 
             {sessionHistory && sessionHistory.length > 0 && (
@@ -475,6 +520,9 @@ function App() {
                 totalProblems={currentSession.problems.length}
                 guidedMode={currentSession.guidedMode}
                 presentationMode={userProfile.settings.presentationMode}
+                canvasBackground={userProfile.settings.canvasBackground}
+                scratchpadEnabled={userProfile.settings.scratchpadEnabled}
+                palmRejection={userProfile.settings.palmRejection}
                 onSubmit={handleSubmitAnswer}
                 onNext={handleNextProblem}
               />

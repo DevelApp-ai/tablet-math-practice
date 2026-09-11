@@ -500,6 +500,9 @@ export const initializeUserProfile = (): UserProfile => ({
     animationsEnabled: true,
     theme: 'default',
     presentationMode: 'horizontal',
+    canvasBackground: 'plain',
+    scratchpadEnabled: false,
+    palmRejection: true,
   },
 })
 
@@ -530,12 +533,18 @@ export const loadUserProfile = (): UserProfile => {
               animationsEnabled: parsed.settings.animationsEnabled ?? true,
               theme: parsed.settings.theme ?? 'default',
               presentationMode: parsed.settings.presentationMode ?? 'horizontal',
+              canvasBackground: parsed.settings.canvasBackground ?? 'plain',
+              scratchpadEnabled: parsed.settings.scratchpadEnabled ?? false,
+              palmRejection: parsed.settings.palmRejection ?? true,
             }
           : {
               soundEnabled: true,
               animationsEnabled: true,
               theme: 'default',
               presentationMode: 'horizontal',
+              canvasBackground: 'plain',
+              scratchpadEnabled: false,
+              palmRejection: true,
             },
       }
     } catch {
