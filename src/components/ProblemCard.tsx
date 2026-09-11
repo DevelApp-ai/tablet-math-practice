@@ -1,12 +1,16 @@
-import { useState, useEffect, useRef } from 'react'
-import { Problem, PresentationMode, CanvasBackground } from '@/lib/types'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { Problem, PresentationMode, CanvasBackground, ProblemDiagnostic } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { getOperationSymbol, checkAnswer, getHints, formatNumber } from '@/lib/mathUtils'
+import { getOperationSymbol, checkAnswer, formatNumber } from '@/lib/mathUtils'
 import { supportsVerticalLayout } from '@/lib/verticalMath'
 import { VerticalAlgorithm } from '@/components/workflow/VerticalAlgorithm'
 import { Scratchpad } from '@/components/canvas/Scratchpad'
+import { BugFeedbackBanner } from '@/components/diagnostics/BugFeedbackBanner'
+import { HintAccordion } from '@/components/diagnostics/HintAccordion'
+import { classifyError } from '@/lib/diagnostics/errorPatterns'
+import { getStructuredHints } from '@/lib/diagnostics/hintsEngine'
 import { Lightbulb, Check, X as XIcon, ArrowRight, SkipForward } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -43,6 +47,7 @@ export function ProblemCard({
   const [showHints, setShowHints] = useState(false)
   const [hintStep, setHintStep] = useState(0)
   const [hintsUsed, setHintsUsed] = useState(0)
+  const [diagnostic, setDiagnostic] = useState<ProblemDiagnostic | null>(null)
   const startTimeRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -52,6 +57,7 @@ export function ProblemCard({
     setShowHints(false)
     setHintStep(0)
     setHintsUsed(0)
+    setDiagnostic(null)
     startTimeRef.current = null
   }, [problem])
 
@@ -64,6 +70,9 @@ export function ProblemCard({
     const correct = checkAnswer(problem, userAnswer)
     setIsCorrect(correct)
     setSubmitted(true)
+    if (!correct) {
+      setDiagnostic(classifyError(problem, userAnswer))
+    }
     onSubmit(userAnswer, hintsUsed)
   }
 
@@ -74,6 +83,7 @@ export function ProblemCard({
   const handleSkip = () => {
     setSubmitted(true)
     setIsCorrect(false)
+    setDiagnostic(classifyError(problem, 0))
     onSubmit(0, hintsUsed)
   }
 
@@ -85,7 +95,10 @@ export function ProblemCard({
     }
   }
 
-  const hints = getHints(problem, hintStep)
+  const structuredHints = useMemo(
+    () => getStructuredHints(problem, hintStep, diagnostic ?? undefined),
+    [problem, hintStep, diagnostic]
+  )
 
   const useVerticalLayout =
     presentationMode === 'vertical' && supportsVerticalLayout(problem)
@@ -142,24 +155,13 @@ export function ProblemCard({
           )}
 
           <AnimatePresence>
-            {showHints && hints.length > 0 && (
+            {showHints && structuredHints.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="bg-secondary/30 rounded-lg p-4 space-y-2"
               >
-                {hints.map((hint, index) => (
-                  <motion.p
-                    key={index}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="text-sm text-left"
-                  >
-                    \ud83d\udca1 {hint}
-                  </motion.p>
-                ))}
+                <HintAccordion hints={structuredHints} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -259,6 +261,13 @@ export function ProblemCard({
             </AnimatePresence>
           </div>
         </div>
+
+        {submitted && !isCorrect && diagnostic && diagnostic.category !== 'unknown' && (
+          <BugFeedbackBanner
+            diagnostic={diagnostic}
+            expectedAnswer={problem.correctAnswer}
+          />
+        )}
 
         {scratchpadEnabled && !submitted && (
           <div className="space-y-2">

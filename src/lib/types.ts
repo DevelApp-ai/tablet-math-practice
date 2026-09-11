@@ -7,6 +7,23 @@ export type PresentationMode = 'horizontal' | 'vertical'
 // Canvas background rendered behind the workspace / scratchpad.
 export type CanvasBackground = 'plain' | 'grid' | 'dotted' | 'lined'
 
+// Diagnostic error classification (the "bug library").
+export type ErrorCategory =
+  | 'borrow_reversal'
+  | 'missing_carry'
+  | 'operation_swap'
+  | 'off_by_one'
+  | 'place_value_shift'
+  | 'sign_confusion'
+  | 'unknown'
+
+export interface ProblemDiagnostic {
+  expectedAnswer: number
+  providedAnswer: number
+  category: ErrorCategory
+  remedialHintKey: string
+}
+
 // Gamification Types
 export type BadgeId =
   | 'first_blood'
@@ -78,6 +95,7 @@ export interface Problem {
   isCorrect?: boolean
   timeSpent?: number
   hintsUsed?: number
+  diagnostic?: ProblemDiagnostic
 }
 
 export interface SessionStats {
