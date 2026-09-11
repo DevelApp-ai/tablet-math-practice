@@ -7,6 +7,26 @@ export type PresentationMode = 'horizontal' | 'vertical'
 // Canvas background rendered behind the workspace / scratchpad.
 export type CanvasBackground = 'plain' | 'grid' | 'dotted' | 'lined'
 
+// Session mode: mastery = untimed with hints + manipulatives,
+// fluency = timed sprint with no hints (reuses timer + speed-bonus XP).
+export type SessionMode = 'mastery' | 'fluency'
+
+// A mistake persisted to the Mistake Vault for spaced-repetition review.
+export interface StoredMistake {
+  id: string
+  problemId: string
+  num1: number
+  num2: number
+  operation: Exclude<OperationType, 'mixed'>
+  incorrectAnswers: number[]
+  // Leitner box: 0 = failed (due next session), 1..3 = graduated after 3 correct.
+  repetitionLevel: number
+  consecutiveCorrect: number
+  nextReviewTimestamp: number
+  lastReviewedAt: number | null
+  addedAt: number
+}
+
 // Diagnostic error classification (the "bug library").
 export type ErrorCategory =
   | 'borrow_reversal'
@@ -118,4 +138,7 @@ export interface PracticeSession {
   stats: SessionStats
   startTime: number
   guidedMode: boolean
+  // Phase 4: typed session mode + remediation flag (mastery/fluency split).
+  sessionMode?: SessionMode
+  isRemediation?: boolean
 }

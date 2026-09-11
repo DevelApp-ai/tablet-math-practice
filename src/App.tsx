@@ -1,6 +1,16 @@
 import { useState, useEffect, useMemo } from 'react'
-import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile, PresentationMode, CanvasBackground } from '@/lib/types'
+import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile, PresentationMode, CanvasBackground, SessionMode, StoredMistake } from '@/lib/types'
 import { generateProblems } from '@/lib/mathUtils'
+import {
+  recordMistake,
+  reviewMistake,
+  removeMistake as removeMistakeFromVault,
+  getDueMistakes,
+  buildRemediationProblems,
+  loadMistakeVault,
+  saveMistakeVault,
+  clearMistakeVault,
+} from '@/lib/repetition/spacedRepetition'
 import { DifficultySelect } from '@/components/DifficultySelect'
 import { OperationSelect } from '@/components/OperationSelect'
 import { ProblemCard } from '@/components/ProblemCard'
@@ -17,7 +27,8 @@ import { Label } from '@/components/ui/label'
 import { Badge as UIBadge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { CanvasGridSelector } from '@/components/canvas/CanvasGridSelector'
-import { ArrowLeft, GraduationCap, ChartBar, Trophy, Flame } from '@phosphor-icons/react'
+import { MistakeVaultModal } from '@/components/workflow/MistakeVaultModal'
+import { ArrowLeft, GraduationCap, ChartBar, Trophy, Flame, Vault, Target, Gauge } from '@phosphor-icons/react'
 import { AnimatePresence } from 'framer-motion'
 import { toast, Toaster } from 'sonner'
 import {
@@ -48,11 +59,13 @@ function App() {
   })
   const [difficulty, setDifficulty] = useState<DifficultyLevel | null>(null)
   const [operationType, setOperationType] = useState<OperationType>('addition')
-  const [guidedMode, setGuidedMode] = useState(false)
+  const [sessionMode, setSessionMode] = useState<SessionMode>('mastery')
   const [showSuccess, setShowSuccess] = useState(false)
   const [startTime, setStartTime] = useState<number | null>(null)
   const [showStats, setShowStats] = useState(false)
   const [showGamification, setShowGamification] = useState(false)
+  const [showVault, setShowVault] = useState(false)
+  const [mistakeVault, setMistakeVault] = useState<StoredMistake[]>(() => loadMistakeVault())
   
   // Load user profile for gamification
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -76,6 +89,11 @@ function App() {
       localStorage.removeItem('current-session')
     }
   }, [currentSession])
+
+  // Persist the Mistake Vault.
+  useEffect(() => {
+    saveMistakeVault(mistakeVault)
+  }, [mistakeVault])
 
   // Start timer when problem changes
   useEffect(() => {
@@ -111,6 +129,7 @@ function App() {
       })
     }
     
+    const guidedMode = sessionMode === 'mastery'
     const session: PracticeSession = {
       id: crypto.randomUUID(),
       difficulty: selectedDifficulty,
@@ -128,9 +147,50 @@ function App() {
         longestStreak: 0
       },
       startTime: Date.now(),
-      guidedMode
+      guidedMode,
+      sessionMode,
     }
     
+    setCurrentSession(session)
+    setStartTime(Date.now())
+  }
+
+  const startRemediationSession = () => {
+    const due = getDueMistakes(mistakeVault)
+    if (due.length === 0) {
+      toast.info('No mistakes due for review right now.')
+      return
+    }
+    const problems = buildRemediationProblems(
+      mistakeVault,
+      20,
+      (n) => generateProblems(n, 'intermediate', 'mixed')
+    )
+    const session: PracticeSession = {
+      id: crypto.randomUUID(),
+      difficulty: 'intermediate',
+      operationType: 'mixed',
+      problems,
+      currentProblemIndex: 0,
+      stats: {
+        totalProblems: problems.length,
+        correctAnswers: 0,
+        incorrectAnswers: 0,
+        accuracy: 0,
+        totalTime: 0,
+        averageTime: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+      },
+      startTime: Date.now(),
+      guidedMode: true,
+      sessionMode: 'mastery',
+      isRemediation: true,
+    }
+    setDifficulty('intermediate')
+    setOperationType('mixed')
+    setShowVault(false)
+    setShowStats(false)
     setCurrentSession(session)
     setStartTime(Date.now())
   }
@@ -148,6 +208,21 @@ function App() {
       isCorrect,
       timeSpent,
       hintsUsed
+    }
+
+    // Phase 4: Mistake Vault.
+    if (currentSession.isRemediation) {
+      const matching = mistakeVault.find(
+        (m) =>
+          m.num1 === currentProblem.operand1 &&
+          m.num2 === currentProblem.operand2 &&
+          m.operation === currentProblem.operation
+      )
+      if (matching) {
+        setMistakeVault((prev) => reviewMistake(prev, matching.id, isCorrect))
+      }
+    } else if (!isCorrect) {
+      setMistakeVault((prev) => recordMistake(prev, currentProblem, answer))
     }
 
     const updatedProblems = [...currentSession.problems]
@@ -301,11 +376,23 @@ function App() {
     }
   }
 
-  const handleGuidedModeChange = (checked: boolean) => {
-    setGuidedMode(checked)
+  const handleSessionModeChange = (mode: SessionMode) => {
+    setSessionMode(mode)
     if (currentSession) {
-      setCurrentSession({ ...currentSession, guidedMode: checked })
+      setCurrentSession({
+        ...currentSession,
+        sessionMode: mode,
+        guidedMode: mode === 'mastery',
+      })
     }
+  }
+
+  const handleRemoveMistake = (mistakeId: string) => {
+    setMistakeVault((prev) => removeMistakeFromVault(prev, mistakeId))
+  }
+
+  const handleClearVault = () => {
+    setMistakeVault(clearMistakeVault())
   }
 
   const handlePresentationModeChange = (mode: PresentationMode) => {
@@ -410,15 +497,31 @@ function App() {
               <h3 className="text-lg font-semibold text-center">Practice Settings</h3>
               <OperationSelect selected={operationType} onSelect={setOperationType} />
               
-              <div className="flex items-center justify-center gap-3 pt-4">
-                <Switch
-                  id="guided-mode"
-                  checked={guidedMode}
-                  onCheckedChange={handleGuidedModeChange}
-                />
-                <Label htmlFor="guided-mode" className="text-base cursor-pointer">
-                  Enable Guided Mode (with hints)
-                </Label>
+              <div className="flex flex-col items-center gap-2 pt-4">
+                <Label className="text-base font-medium">Session Mode</Label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={sessionMode === 'mastery' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleSessionModeChange('mastery')}
+                    className="gap-1"
+                  >
+                    <Target size={16} />
+                    Mastery
+                  </Button>
+                  <Button
+                    variant={sessionMode === 'fluency' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleSessionModeChange('fluency')}
+                    className="gap-1"
+                  >
+                    <Gauge size={16} />
+                    Fluency (timed sprint)
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground text-center max-w-md">
+                  Mastery: untimed with hints and manipulatives. Fluency: timed sprint, no hints — speed earns bonus XP.
+                </p>
               </div>
 
               <div className="flex items-center justify-center gap-3 pt-4">
@@ -468,6 +571,23 @@ function App() {
                   }
                 />
               </div>
+            </div>
+
+            <Separator className="my-8" />
+            <div className="text-center">
+              <Button
+                variant="outline"
+                onClick={() => setShowVault(true)}
+                className="gap-2"
+              >
+                <Vault size={20} />
+                Mistake Vault
+                {mistakeVault.length > 0 && (
+                  <UIBadge variant="destructive" className="ml-1">
+                    {mistakeVault.length}
+                  </UIBadge>
+                )}
+              </Button>
             </div>
 
             {sessionHistory && sessionHistory.length > 0 && (
@@ -549,6 +669,15 @@ function App() {
         {showSuccess && 'Correct! Well done!'}
         {currentSession && currentProblem && `Problem ${currentSession.currentProblemIndex + 1} of ${currentSession.problems.length}`}
       </div>
+
+      <MistakeVaultModal
+        open={showVault}
+        onOpenChange={setShowVault}
+        vault={mistakeVault}
+        onRemove={handleRemoveMistake}
+        onClearAll={handleClearVault}
+        onStartRemediation={startRemediationSession}
+      />
     </div>
   )
 }
