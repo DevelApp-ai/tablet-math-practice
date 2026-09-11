@@ -9,11 +9,15 @@ import { VerticalAlgorithm } from '@/components/workflow/VerticalAlgorithm'
 import { Scratchpad } from '@/components/canvas/Scratchpad'
 import { StrokeSession } from '@/lib/ink/strokeStore'
 import { ManipulativeStage } from '@/components/manipulatives/ManipulativeStage'
+import { BalanceScale } from '@/components/manipulatives/BalanceScale'
+import { getWordProblemSpeech, isWordProblem } from '@/lib/wordProblems'
+import { getExpectedAnswer } from '@/lib/mathUtils'
+import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import { BugFeedbackBanner } from '@/components/diagnostics/BugFeedbackBanner'
 import { HintAccordion } from '@/components/diagnostics/HintAccordion'
 import { classifyError } from '@/lib/diagnostics/errorPatterns'
 import { getStructuredHints } from '@/lib/diagnostics/hintsEngine'
-import { Lightbulb, Check, X as XIcon, ArrowRight, SkipForward } from '@phosphor-icons/react'
+import { Lightbulb, Check, X as XIcon, ArrowRight, SkipForward, SpeakerSimpleHigh, Stop } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { PenInput } from './PenInput'
@@ -55,6 +59,7 @@ export function ProblemCard({
   const [hintsUsed, setHintsUsed] = useState(0)
   const [diagnostic, setDiagnostic] = useState<ProblemDiagnostic | null>(null)
   const startTimeRef = useRef<number | null>(null)
+  const { supported: ttsSupported, speaking, speak, stop } = useSpeechSynthesis()
 
   useEffect(() => {
     setAnswer('')
@@ -121,7 +126,20 @@ export function ProblemCard({
           <Badge variant="outline" className="text-sm md:text-base px-3 md:px-4 py-1">
             Problem {problemNumber} of {totalProblems}
           </Badge>
-          {guidedMode && !submitted && (
+          <div className="flex items-center gap-1">
+            {isWordProblem(problem) && ttsSupported && !submitted && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={speaking ? stop : () => speak(getWordProblemSpeech(problem))}
+                className="gap-1.5"
+                aria-label={speaking ? 'Stop reading aloud' : 'Read problem aloud'}
+              >
+                {speaking ? <Stop size={18} /> : <SpeakerSimpleHigh size={18} weight="duotone" className="text-accent" />}
+                {speaking ? 'Stop' : 'Read aloud'}
+              </Button>
+            )}
+            {guidedMode && !submitted && (
             <Button
               variant="ghost"
               size="sm"
@@ -133,11 +151,18 @@ export function ProblemCard({
               <Lightbulb size={20} weight="duotone" className="text-accent" />
               {hintStep === 0 ? 'Show Hint' : 'Next Hint'}
             </Button>
-          )}
+            )}
+          </div>
         </div>
 
         <div className="text-center space-y-6 md:space-y-8">
-          {useVerticalLayout ? (
+          {isWordProblem(problem) ? (
+            <div className="max-w-xl mx-auto space-y-3">
+              <p className="text-lg md:text-xl font-medium leading-relaxed">
+                {problem.wordProblem}
+              </p>
+            </div>
+          ) : useVerticalLayout ? (
             <div className="flex flex-col items-center gap-3">
               <VerticalAlgorithm
                 problem={problem}
@@ -152,15 +177,27 @@ export function ProblemCard({
             </div>
           ) : (
             <div className="flex items-center justify-center gap-4 md:gap-6 text-4xl md:text-6xl font-bold tracking-wide">
-              <span>{formatNumber(problem.operand1)}</span>
+              <span className={problem.unknownPosition === 'operand1' ? 'text-primary' : ''}>
+                {problem.unknownPosition === 'operand1' && !submitted ? '?' : formatNumber(problem.operand1)}
+              </span>
               <span className="text-primary">{getOperationSymbol(problem.operation)}</span>
-              <span>{formatNumber(problem.operand2)}</span>
+              <span className={problem.unknownPosition === 'operand2' ? 'text-primary' : ''}>
+                {problem.unknownPosition === 'operand2' && !submitted ? '?' : formatNumber(problem.operand2)}
+              </span>
               <span>=</span>
-              <span className="text-muted-foreground">?</span>
+              <span className={problem.unknownPosition === 'result' || !problem.unknownPosition ? 'text-primary' : ''}>
+                {(problem.unknownPosition === 'result' || !problem.unknownPosition) && !submitted ? '?' : formatNumber(problem.correctAnswer)}
+              </span>
             </div>
           )}
 
-          {manipulativesEnabled && !submitted && (
+          {manipulativesEnabled && !submitted && problem.unknownPosition && problem.unknownPosition !== 'result' && !isWordProblem(problem) && (
+            <div className="flex justify-center py-2">
+              <BalanceScale left={problem.operand1} right={problem.operand2} />
+            </div>
+          )}
+
+          {manipulativesEnabled && !submitted && (problem.unknownPosition === 'result' || !problem.unknownPosition) && (
             <div className="flex justify-center py-2">
               <ManipulativeStage problem={problem} />
             </div>
@@ -265,7 +302,7 @@ export function ProblemCard({
                   ) : (
                     <>
                       <XIcon size={32} weight="bold" />
-                      <span>Not quite. The answer is {formatNumber(problem.correctAnswer)}</span>
+                      <span>Not quite. The answer is {formatNumber(getExpectedAnswer(problem))}</span>
                     </>
                   )}
                 </motion.div>

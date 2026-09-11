@@ -504,6 +504,7 @@ export const initializeUserProfile = (): UserProfile => ({
     scratchpadEnabled: false,
     palmRejection: true,
     manipulativesEnabled: true,
+    wordProblemsEnabled: false,
   },
 })
 
@@ -538,6 +539,7 @@ export const loadUserProfile = (): UserProfile => {
               scratchpadEnabled: parsed.settings.scratchpadEnabled ?? false,
               palmRejection: parsed.settings.palmRejection ?? true,
               manipulativesEnabled: parsed.settings.manipulativesEnabled ?? true,
+              wordProblemsEnabled: parsed.settings.wordProblemsEnabled ?? false,
             }
           : {
               soundEnabled: true,
@@ -548,6 +550,7 @@ export const loadUserProfile = (): UserProfile => {
               scratchpadEnabled: false,
               palmRejection: true,
               manipulativesEnabled: true,
+              wordProblemsEnabled: false,
             },
       }
     } catch {

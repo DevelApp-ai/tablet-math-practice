@@ -112,10 +112,48 @@ export function getOperationSymbol(operation: Exclude<OperationType, 'mixed'>): 
 }
 
 export function checkAnswer(problem: Problem, userAnswer: number): boolean {
-  if (problem.operation === 'division' && problem.correctAnswer % 1 !== 0) {
-    return Math.abs(userAnswer - problem.correctAnswer) < 0.01
+  const expected = getExpectedAnswer(problem)
+  if (problem.operation === 'division' && expected % 1 !== 0) {
+    return Math.abs(userAnswer - expected) < 0.01
   }
-  return userAnswer === problem.correctAnswer
+  return userAnswer === expected
+}
+
+/**
+ * Phase 6: the value the learner must enter for a given unknown position.
+ * For the default 'result' position this is the equation's result. For a
+ * missing operand/operator it is the value that makes the equation true.
+ */
+export function getExpectedAnswer(problem: Problem): number {
+  const position = problem.unknownPosition ?? 'result'
+  if (position === 'result') return problem.correctAnswer
+  if (position === 'operand1') return problem.operand1
+  if (position === 'operand2') return problem.operand2
+  // 'operator' unknown is handled in the UI as an operator picker, not a
+  // numeric answer; fall back to the result so checkAnswer stays numeric-safe.
+  return problem.correctAnswer
+}
+
+export type UnknownPosition = NonNullable<Problem['unknownPosition']>
+
+const UNKNOWN_POSITIONS: UnknownPosition[] = ['result', 'operand1', 'operand2']
+
+/**
+ * Phase 6: return a copy of the problem with a randomly chosen unknown slot.
+ * 'operator' is intentionally excluded from the random pool to keep input
+ * numeric; callers can set it explicitly. For beginner difficulty the
+ * result position is favored so missing-operand reasoning is introduced gradually.
+ */
+export function withUnknownPosition(
+  problem: Problem,
+  difficulty: DifficultyLevel
+): Problem {
+  const positions: UnknownPosition[] =
+    difficulty === 'beginner'
+      ? ['result', 'result', 'operand1', 'operand2']
+      : UNKNOWN_POSITIONS
+  const unknownPosition = positions[Math.floor(Math.random() * positions.length)]
+  return { ...problem, unknownPosition }
 }
 
 export function getHints(problem: Problem, step: number): string[] {

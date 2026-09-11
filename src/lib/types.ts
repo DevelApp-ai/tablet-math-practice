@@ -85,6 +85,8 @@ export interface UserSettings {
   palmRejection: boolean
   // Phase 5: CPA visual manipulatives (ten-frames, number lines, array grids).
   manipulativesEnabled: boolean
+  // Phase 6: relational/algebraic + word problems.
+  wordProblemsEnabled: boolean
 }
 
 export interface UserProfile {
@@ -118,6 +120,10 @@ export interface Problem {
   timeSpent?: number
   hintsUsed?: number
   diagnostic?: ProblemDiagnostic
+  // Phase 6: which slot is the unknown (default 'result' preserves prior behavior).
+  unknownPosition?: 'result' | 'operand1' | 'operand2' | 'operator'
+  // Phase 6: rendered word-problem stem (when present, shown instead of the bare equation).
+  wordProblem?: string
 }
 
 export interface SessionStats {

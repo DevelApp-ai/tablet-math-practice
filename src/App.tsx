@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile, PresentationMode, CanvasBackground, SessionMode, StoredMistake } from '@/lib/types'
-import { generateProblems } from '@/lib/mathUtils'
+import { generateProblems, generateProblem, withUnknownPosition } from '@/lib/mathUtils'
+import { generateWordProblem } from '@/lib/wordProblems'
 import {
   recordMistake,
   reviewMistake,
@@ -107,17 +108,39 @@ function App() {
     }
   }, [currentSession?.currentProblemIndex])
 
+  // Phase 6: build a problem set honoring the word-problems / missing-operand
+  // toggles, falling back to plain generation otherwise.
+  const buildProblems = (
+    count: number,
+    diff: DifficultyLevel,
+    op: OperationType
+  ): Problem[] => {
+    const wordEnabled = userProfile.settings.wordProblemsEnabled
+    const operations: Exclude<OperationType, 'mixed'>[] =
+      op === 'mixed' ? ['addition', 'subtraction', 'multiplication', 'division'] : [op as Exclude<OperationType, 'mixed'>]
+    const problems: Problem[] = []
+    for (let i = 0; i < count; i++) {
+      const operation = operations[Math.floor(Math.random() * operations.length)]
+      if (wordEnabled) {
+        problems.push(generateWordProblem(diff, operation))
+      } else {
+        problems.push(withUnknownPosition(generateProblem(diff, operation), diff))
+      }
+    }
+    return problems
+  }
+
   // Memoize problem generation
   const memoizedProblems = useMemo(() => {
     if (difficulty) {
-      return generateProblems(10, difficulty, operationType)
+      return buildProblems(10, difficulty, operationType)
     }
     return []
   }, [difficulty, operationType])
 
   const startSession = (selectedDifficulty: DifficultyLevel, problemCount: number = 20) => {
     setDifficulty(selectedDifficulty)
-    const problems = generateProblems(problemCount, selectedDifficulty, operationType)
+    const problems = buildProblems(problemCount, selectedDifficulty, operationType)
     
     // Update daily streak when starting a new session
     const updatedDailyStreak = updateDailyStreak(userProfile.dailyStreak, new Date().toISOString().split('T')[0])
@@ -361,7 +384,7 @@ function App() {
 
   const handleGenerateWorksheet = (count: number) => {
     if (difficulty) {
-      const problems = generateProblems(count, difficulty, operationType)
+      const problems = buildProblems(count, difficulty, operationType)
       if (currentSession) {
         setCurrentSession({
           ...currentSession,
@@ -417,7 +440,7 @@ function App() {
   }
 
   const handleSettingsChange = (
-    patch: Partial<Pick<UserProfile['settings'], 'canvasBackground' | 'scratchpadEnabled' | 'palmRejection' | 'manipulativesEnabled'>>
+    patch: Partial<Pick<UserProfile['settings'], 'canvasBackground' | 'scratchpadEnabled' | 'palmRejection' | 'manipulativesEnabled' | 'wordProblemsEnabled'>>
   ) => {
     setUserProfile({
       ...userProfile,
@@ -561,6 +584,19 @@ function App() {
                 />
                 <Label htmlFor="manipulatives-mode" className="text-base cursor-pointer">
                   Show Visual Manipulatives (ten-frames, number lines, arrays)
+                </Label>
+              </div>
+
+              <div className="flex items-center justify-center gap-3 pt-4">
+                <Switch
+                  id="word-problems-mode"
+                  checked={userProfile.settings.wordProblemsEnabled}
+                  onCheckedChange={(checked) =>
+                    handleSettingsChange({ wordProblemsEnabled: checked })
+                  }
+                />
+                <Label htmlFor="word-problems-mode" className="text-base cursor-pointer">
+                  Word Problems (story problems with read-aloud)
                 </Label>
               </div>
 
