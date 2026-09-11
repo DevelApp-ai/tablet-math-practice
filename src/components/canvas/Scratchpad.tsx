@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { CanvasBackground } from '@/lib/types'
 import { getCanvasGridStyle, shouldAcceptPointer } from '@/lib/canvasBackground'
+import { StrokeRecorder, StrokeSession } from '@/lib/ink/strokeStore'
 import { cn } from '@/lib/utils'
 import { Eraser, Trash } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,8 @@ interface ScratchpadProps {
   canvasBackground: CanvasBackground
   palmRejection: boolean
   className?: string
+  /** When provided, the scratchpad emits a captured stroke session on clear/unmount. */
+  onStrokeSession?: (session: StrokeSession) => void
 }
 
 interface Point {
@@ -24,12 +27,18 @@ export function Scratchpad({
   canvasBackground,
   palmRejection,
   className,
+  onStrokeSession,
 }: ScratchpadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const drawingRef = useRef(false)
   const lastPointRef = useRef<Point | null>(null)
+  const recorderRef = useRef<StrokeRecorder | null>(null)
   const [hasInk, setHasInk] = useState(false)
+
+  if (onStrokeSession && !recorderRef.current) {
+    recorderRef.current = new StrokeRecorder()
+  }
 
   const style = getCanvasGridStyle(canvasBackground)
 
@@ -84,6 +93,8 @@ export function Scratchpad({
     canvasRef.current?.setPointerCapture(e.pointerId)
     drawingRef.current = true
     lastPointRef.current = getPoint(e)
+    recorderRef.current?.beginStroke(e.pointerType)
+    recorderRef.current?.appendPoint(lastPointRef.current.x, lastPointRef.current.y)
     setHasInk(true)
   }
 
@@ -94,20 +105,34 @@ export function Scratchpad({
     const point = getPoint(e)
     const last = lastPointRef.current
     if (last) drawSegment(last, point)
+    recorderRef.current?.appendPoint(point.x, point.y)
     lastPointRef.current = point
   }
 
   const handlePointerUp = (e: React.PointerEvent) => {
     drawingRef.current = false
     lastPointRef.current = null
+    recorderRef.current?.endStroke()
     canvasRef.current?.releasePointerCapture?.(e.pointerId)
   }
 
+  const emitSession = useCallback(() => {
+    if (!onStrokeSession || !recorderRef.current) return
+    if (recorderRef.current.getStrokeCount() === 0) return
+    onStrokeSession(recorderRef.current.toSession())
+  }, [onStrokeSession])
+
+  useEffect(() => {
+    return () => emitSession()
+  }, [emitSession])
+
   const clear = () => {
+    emitSession()
     const canvas = canvasRef.current
     const ctx = canvas?.getContext('2d')
     if (!canvas || !ctx) return
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+    recorderRef.current?.clear()
     setHasInk(false)
   }
 

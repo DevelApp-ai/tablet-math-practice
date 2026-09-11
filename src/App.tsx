@@ -27,7 +27,9 @@ import { Label } from '@/components/ui/label'
 import { Badge as UIBadge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { CanvasGridSelector } from '@/components/canvas/CanvasGridSelector'
+import { StrokeReplayViewer } from '@/components/canvas/StrokeReplayViewer'
 import { MistakeVaultModal } from '@/components/workflow/MistakeVaultModal'
+import { StrokeSession } from '@/lib/ink/strokeStore'
 import { ArrowLeft, GraduationCap, ChartBar, Trophy, Flame, Vault, Target, Gauge } from '@phosphor-icons/react'
 import { AnimatePresence } from 'framer-motion'
 import { toast, Toaster } from 'sonner'
@@ -66,6 +68,9 @@ function App() {
   const [showGamification, setShowGamification] = useState(false)
   const [showVault, setShowVault] = useState(false)
   const [mistakeVault, setMistakeVault] = useState<StoredMistake[]>(() => loadMistakeVault())
+  // Phase 5: captured ink per problem, for educator stroke replay.
+  const [strokeSessions, setStrokeSessions] = useState<Record<string, StrokeSession>>({})
+  const [replayProblemId, setReplayProblemId] = useState<string | null>(null)
   
   // Load user profile for gamification
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -342,6 +347,8 @@ function App() {
     setCurrentSession(null)
     setDifficulty(null)
     setShowStats(false)
+    setStrokeSessions({})
+    setReplayProblemId(null)
     localStorage.removeItem('current-session')
   }
 
@@ -395,6 +402,13 @@ function App() {
     setMistakeVault(clearMistakeVault())
   }
 
+  const handleStrokeSession = (session: StrokeSession) => {
+    if (!currentSession) return
+    const problemId = currentSession.problems[currentSession.currentProblemIndex]?.id
+    if (!problemId) return
+    setStrokeSessions((prev) => ({ ...prev, [problemId]: session }))
+  }
+
   const handlePresentationModeChange = (mode: PresentationMode) => {
     setUserProfile({
       ...userProfile,
@@ -403,7 +417,7 @@ function App() {
   }
 
   const handleSettingsChange = (
-    patch: Partial<Pick<UserProfile['settings'], 'canvasBackground' | 'scratchpadEnabled' | 'palmRejection'>>
+    patch: Partial<Pick<UserProfile['settings'], 'canvasBackground' | 'scratchpadEnabled' | 'palmRejection' | 'manipulativesEnabled'>>
   ) => {
     setUserProfile({
       ...userProfile,
@@ -539,6 +553,19 @@ function App() {
 
               <div className="flex items-center justify-center gap-3 pt-4">
                 <Switch
+                  id="manipulatives-mode"
+                  checked={userProfile.settings.manipulativesEnabled}
+                  onCheckedChange={(checked) =>
+                    handleSettingsChange({ manipulativesEnabled: checked })
+                  }
+                />
+                <Label htmlFor="manipulatives-mode" className="text-base cursor-pointer">
+                  Show Visual Manipulatives (ten-frames, number lines, arrays)
+                </Label>
+              </div>
+
+              <div className="flex items-center justify-center gap-3 pt-4">
+                <Switch
                   id="scratchpad-mode"
                   checked={userProfile.settings.scratchpadEnabled}
                   onCheckedChange={(checked) =>
@@ -614,7 +641,32 @@ function App() {
             </div>
             
             {currentSession && <StatsDashboard stats={currentSession.stats} history={sessionHistory} />}
-            
+
+            {currentSession && Object.keys(strokeSessions).length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-center">Stroke Replay (Educator)</h3>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {currentSession.problems
+                    .filter((p) => strokeSessions[p.id])
+                    .map((p, idx) => (
+                      <Button
+                        key={p.id}
+                        variant={replayProblemId === p.id ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setReplayProblemId(p.id)}
+                      >
+                        Problem {idx + 1}
+                      </Button>
+                    ))}
+                </div>
+                {replayProblemId && strokeSessions[replayProblemId] && (
+                  <div className="max-w-2xl mx-auto">
+                    <StrokeReplayViewer session={strokeSessions[replayProblemId]} />
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex gap-4 justify-center">
               <Button onClick={handleNewSession} size="lg" className="gap-2">
                 Practice Again
@@ -643,8 +695,10 @@ function App() {
                 canvasBackground={userProfile.settings.canvasBackground}
                 scratchpadEnabled={userProfile.settings.scratchpadEnabled}
                 palmRejection={userProfile.settings.palmRejection}
+                manipulativesEnabled={userProfile.settings.manipulativesEnabled}
                 onSubmit={handleSubmitAnswer}
                 onNext={handleNextProblem}
+                onStrokeSession={handleStrokeSession}
               />
             </AnimatePresence>
 

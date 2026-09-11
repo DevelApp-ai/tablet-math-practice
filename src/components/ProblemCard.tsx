@@ -7,6 +7,8 @@ import { getOperationSymbol, checkAnswer, formatNumber } from '@/lib/mathUtils'
 import { supportsVerticalLayout } from '@/lib/verticalMath'
 import { VerticalAlgorithm } from '@/components/workflow/VerticalAlgorithm'
 import { Scratchpad } from '@/components/canvas/Scratchpad'
+import { StrokeSession } from '@/lib/ink/strokeStore'
+import { ManipulativeStage } from '@/components/manipulatives/ManipulativeStage'
 import { BugFeedbackBanner } from '@/components/diagnostics/BugFeedbackBanner'
 import { HintAccordion } from '@/components/diagnostics/HintAccordion'
 import { classifyError } from '@/lib/diagnostics/errorPatterns'
@@ -25,8 +27,10 @@ interface ProblemCardProps {
   canvasBackground: CanvasBackground
   scratchpadEnabled: boolean
   palmRejection: boolean
+  manipulativesEnabled: boolean
   onSubmit: (answer: number, hintsUsed: number) => void
   onNext: () => void
+  onStrokeSession?: (session: StrokeSession) => void
 }
 
 export function ProblemCard({
@@ -38,8 +42,10 @@ export function ProblemCard({
   canvasBackground,
   scratchpadEnabled,
   palmRejection,
+  manipulativesEnabled,
   onSubmit,
-  onNext
+  onNext,
+  onStrokeSession,
 }: ProblemCardProps) {
   const [answer, setAnswer] = useState('')
   const [submitted, setSubmitted] = useState(false)
@@ -151,6 +157,12 @@ export function ProblemCard({
               <span>{formatNumber(problem.operand2)}</span>
               <span>=</span>
               <span className="text-muted-foreground">?</span>
+            </div>
+          )}
+
+          {manipulativesEnabled && !submitted && (
+            <div className="flex justify-center py-2">
+              <ManipulativeStage problem={problem} />
             </div>
           )}
 
@@ -277,6 +289,7 @@ export function ProblemCard({
             <Scratchpad
               canvasBackground={canvasBackground}
               palmRejection={palmRejection}
+              onStrokeSession={onStrokeSession}
               className="h-48 md:h-56"
             />
           </div>

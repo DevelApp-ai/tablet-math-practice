@@ -83,6 +83,8 @@ export interface UserSettings {
   canvasBackground: CanvasBackground
   scratchpadEnabled: boolean
   palmRejection: boolean
+  // Phase 5: CPA visual manipulatives (ten-frames, number lines, array grids).
+  manipulativesEnabled: boolean
 }
 
 export interface UserProfile {

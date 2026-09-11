@@ -503,6 +503,7 @@ export const initializeUserProfile = (): UserProfile => ({
     canvasBackground: 'plain',
     scratchpadEnabled: false,
     palmRejection: true,
+    manipulativesEnabled: true,
   },
 })
 
@@ -536,6 +537,7 @@ export const loadUserProfile = (): UserProfile => {
               canvasBackground: parsed.settings.canvasBackground ?? 'plain',
               scratchpadEnabled: parsed.settings.scratchpadEnabled ?? false,
               palmRejection: parsed.settings.palmRejection ?? true,
+              manipulativesEnabled: parsed.settings.manipulativesEnabled ?? true,
             }
           : {
               soundEnabled: true,
@@ -545,6 +547,7 @@ export const loadUserProfile = (): UserProfile => {
               canvasBackground: 'plain',
               scratchpadEnabled: false,
               palmRejection: true,
+              manipulativesEnabled: true,
             },
       }
     } catch {
