@@ -168,7 +168,7 @@ Re-ordered to front-load the two highest-impact, lowest-risk items the doc itsel
 | **1** | Vertical algorithm layout + carry/borrow registers; `PresentationMode` in `UserSettings` | `VerticalAlgorithm.tsx`, `ProblemCard.tsx`, `types.ts` | 3–5d | — | ✅ In progress (PR #39) |
 | **2** | Graph/grid canvas background selector + palm-rejection `pointerType` filters; scratchpad zone via `react-resizable-panels` | `CanvasGridSelector.tsx`, `PenInput.tsx`, `ProblemCard.tsx` | 3–4d | Phase 1 | ✅ In progress (PR #40) |
 | **3** | Diagnostic error classification + tiered `hintsEngine` + `BugFeedbackBanner`/`HintAccordion` | `errorPatterns.ts`, `hintsEngine.ts`, `BugFeedbackBanner.tsx` | 4–6d | Phase 1 | ✅ In progress (PR #41) |
-| **4** | Mistake Vault (Leitner queue in `localStorage`) + Mastery/Fluency session modes + Remediation Challenge | `spacedRepetition.ts`, `MistakeVaultModal.tsx`, `App.tsx` | 5–7d | Phase 3 | ⬜ |
+| **4** | Mistake Vault (Leitner queue in `localStorage`) + Mastery/Fluency session modes + Remediation Challenge | `spacedRepetition.ts`, `MistakeVaultModal.tsx`, `App.tsx` | 5–7d | Phase 3 | ✅ In progress (PR #42) |
 | **5** | Ten-frames + number lines + array grids (beginner/intermediate); full ink-capture layer + stroke replay | `TenFrame.tsx`, `NumberLine.tsx`, `ArrayGrid.tsx`, `StrokeReplayViewer.tsx` | 6–9d | Phases 2, 4 | ⬜ |
 | **6** | Algebraic balance scales + missing operands + word problems + Web Speech TTS | `BalanceScale.tsx`, `wordProblems.ts`, `ProblemCard.tsx` | 5–7d | Phases 3, 5 | ⬜ |
 
