@@ -4,6 +4,9 @@ export type OperationType = 'addition' | 'subtraction' | 'multiplication' | 'div
 // Presentation: how the arithmetic is laid out for the learner.
 export type PresentationMode = 'horizontal' | 'vertical'
 
+// Canvas background rendered behind the workspace / scratchpad.
+export type CanvasBackground = 'plain' | 'grid' | 'dotted' | 'lined'
+
 // Gamification Types
 export type BadgeId =
   | 'first_blood'
@@ -40,6 +43,9 @@ export interface UserSettings {
   animationsEnabled: boolean
   theme: string
   presentationMode: PresentationMode
+  canvasBackground: CanvasBackground
+  scratchpadEnabled: boolean
+  palmRejection: boolean
 }
 
 export interface UserProfile {
