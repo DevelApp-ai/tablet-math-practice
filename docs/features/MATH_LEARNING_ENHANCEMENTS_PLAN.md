@@ -163,14 +163,14 @@ Re-ordered to front-load the two highest-impact, lowest-risk items the doc itsel
 (vertical layout, graph paper/palm rejection) and to sequence dependencies correctly
 (diagnostics must precede the Mistake Vault that consumes them; ink layer must precede replay).
 
-| Phase | Milestone | Key files | Effort | Depends on |
-|---|---|---|---|---|
-| **1** | Vertical algorithm layout + carry/borrow registers; `PresentationMode` in `UserSettings` | `VerticalAlgorithm.tsx`, `ProblemCard.tsx`, `types.ts` | 3–5d | — |
-| **2** | Graph/grid canvas background selector + palm-rejection `pointerType` filters; scratchpad zone via `react-resizable-panels` | `CanvasGridSelector.tsx`, `PenInput.tsx`, `ProblemCard.tsx` | 3–4d | Phase 1 |
-| **3** | Diagnostic error classification + tiered `hintsEngine` + `BugFeedbackBanner`/`HintAccordion` | `errorPatterns.ts`, `hintsEngine.ts`, `BugFeedbackBanner.tsx` | 4–6d | Phase 1 |
-| **4** | Mistake Vault (Leitner queue in `localStorage`) + Mastery/Fluency session modes + Remediation Challenge | `spacedRepetition.ts`, `MistakeVaultModal.tsx`, `App.tsx` | 5–7d | Phase 3 |
-| **5** | Ten-frames + number lines + array grids (beginner/intermediate); full ink-capture layer + stroke replay | `TenFrame.tsx`, `NumberLine.tsx`, `ArrayGrid.tsx`, `StrokeReplayViewer.tsx` | 6–9d | Phases 2, 4 |
-| **6** | Algebraic balance scales + missing operands + word problems + Web Speech TTS | `BalanceScale.tsx`, `wordProblems.ts`, `ProblemCard.tsx` | 5–7d | Phases 3, 5 |
+| Phase | Milestone | Key files | Effort | Depends on | Status |
+|---|---|---|---|---|---|
+| **1** | Vertical algorithm layout + carry/borrow registers; `PresentationMode` in `UserSettings` | `VerticalAlgorithm.tsx`, `ProblemCard.tsx`, `types.ts` | 3–5d | — | ✅ In progress (PR #39) |
+| **2** | Graph/grid canvas background selector + palm-rejection `pointerType` filters; scratchpad zone via `react-resizable-panels` | `CanvasGridSelector.tsx`, `PenInput.tsx`, `ProblemCard.tsx` | 3–4d | Phase 1 | ⬜ |
+| **3** | Diagnostic error classification + tiered `hintsEngine` + `BugFeedbackBanner`/`HintAccordion` | `errorPatterns.ts`, `hintsEngine.ts`, `BugFeedbackBanner.tsx` | 4–6d | Phase 1 | ⬜ |
+| **4** | Mistake Vault (Leitner queue in `localStorage`) + Mastery/Fluency session modes + Remediation Challenge | `spacedRepetition.ts`, `MistakeVaultModal.tsx`, `App.tsx` | 5–7d | Phase 3 | ⬜ |
+| **5** | Ten-frames + number lines + array grids (beginner/intermediate); full ink-capture layer + stroke replay | `TenFrame.tsx`, `NumberLine.tsx`, `ArrayGrid.tsx`, `StrokeReplayViewer.tsx` | 6–9d | Phases 2, 4 | ⬜ |
+| **6** | Algebraic balance scales + missing operands + word problems + Web Speech TTS | `BalanceScale.tsx`, `wordProblems.ts`, `ProblemCard.tsx` | 5–7d | Phases 3, 5 | ⬜ |
 
 **Sequencing rationale:** Phase 1 unlocks column feedback that Phases 3 & 4 build on; Phase 2's
 scratchpad/ink foundation is required before Phase 5's replay; diagnostics (3) must exist before

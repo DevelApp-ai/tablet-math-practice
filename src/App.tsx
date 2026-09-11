@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile } from '@/lib/types'
+import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile, PresentationMode } from '@/lib/types'
 import { generateProblems } from '@/lib/mathUtils'
 import { DifficultySelect } from '@/components/DifficultySelect'
 import { OperationSelect } from '@/components/OperationSelect'
@@ -307,6 +307,13 @@ function App() {
     }
   }
 
+  const handlePresentationModeChange = (mode: PresentationMode) => {
+    setUserProfile({
+      ...userProfile,
+      settings: { ...userProfile.settings, presentationMode: mode },
+    })
+  }
+
   const currentProblem = currentSession?.problems[currentSession.currentProblemIndex]
 
   return (
@@ -403,6 +410,19 @@ function App() {
                   Enable Guided Mode (with hints)
                 </Label>
               </div>
+
+              <div className="flex items-center justify-center gap-3 pt-4">
+                <Switch
+                  id="vertical-mode"
+                  checked={userProfile.settings.presentationMode === 'vertical'}
+                  onCheckedChange={(checked) =>
+                    handlePresentationModeChange(checked ? 'vertical' : 'horizontal')
+                  }
+                />
+                <Label htmlFor="vertical-mode" className="text-base cursor-pointer">
+                  Vertical Layout (column math with carry/borrow)
+                </Label>
+              </div>
             </div>
 
             {sessionHistory && sessionHistory.length > 0 && (
@@ -454,6 +474,7 @@ function App() {
                 problemNumber={currentSession.currentProblemIndex + 1}
                 totalProblems={currentSession.problems.length}
                 guidedMode={currentSession.guidedMode}
+                presentationMode={userProfile.settings.presentationMode}
                 onSubmit={handleSubmitAnswer}
                 onNext={handleNextProblem}
               />

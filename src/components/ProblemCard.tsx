@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import { Problem } from '@/lib/types'
+import { Problem, PresentationMode } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { getOperationSymbol, checkAnswer, getHints, formatNumber } from '@/lib/mathUtils'
+import { supportsVerticalLayout } from '@/lib/verticalMath'
+import { VerticalAlgorithm } from '@/components/workflow/VerticalAlgorithm'
 import { Lightbulb, Check, X as XIcon, ArrowRight, SkipForward } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -14,6 +16,7 @@ interface ProblemCardProps {
   problemNumber: number
   totalProblems: number
   guidedMode: boolean
+  presentationMode: PresentationMode
   onSubmit: (answer: number, hintsUsed: number) => void
   onNext: () => void
 }
@@ -23,6 +26,7 @@ export function ProblemCard({
   problemNumber,
   totalProblems,
   guidedMode,
+  presentationMode,
   onSubmit,
   onNext
 }: ProblemCardProps) {
@@ -76,6 +80,9 @@ export function ProblemCard({
 
   const hints = getHints(problem, hintStep)
 
+  const useVerticalLayout =
+    presentationMode === 'vertical' && supportsVerticalLayout(problem)
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -104,13 +111,28 @@ export function ProblemCard({
         </div>
 
         <div className="text-center space-y-6 md:space-y-8">
-          <div className="flex items-center justify-center gap-4 md:gap-6 text-4xl md:text-6xl font-bold tracking-wide">
-            <span>{formatNumber(problem.operand1)}</span>
-            <span className="text-primary">{getOperationSymbol(problem.operation)}</span>
-            <span>{formatNumber(problem.operand2)}</span>
-            <span>=</span>
-            <span className="text-muted-foreground">?</span>
-          </div>
+          {useVerticalLayout ? (
+            <div className="flex flex-col items-center gap-3">
+              <VerticalAlgorithm
+                problem={problem}
+                submitted={submitted}
+                isCorrect={isCorrect}
+              />
+              <p className="text-sm text-muted-foreground">
+                {submitted
+                  ? `Answer: ${formatNumber(problem.correctAnswer)}`
+                  : 'Enter your answer below'}
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-4 md:gap-6 text-4xl md:text-6xl font-bold tracking-wide">
+              <span>{formatNumber(problem.operand1)}</span>
+              <span className="text-primary">{getOperationSymbol(problem.operation)}</span>
+              <span>{formatNumber(problem.operand2)}</span>
+              <span>=</span>
+              <span className="text-muted-foreground">?</span>
+            </div>
+          )}
 
           <AnimatePresence>
             {showHints && hints.length > 0 && (

@@ -1,6 +1,9 @@
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced'
 export type OperationType = 'addition' | 'subtraction' | 'multiplication' | 'division' | 'mixed'
 
+// Presentation: how the arithmetic is laid out for the learner.
+export type PresentationMode = 'horizontal' | 'vertical'
+
 // Gamification Types
 export type BadgeId =
   | 'first_blood'
@@ -36,6 +39,7 @@ export interface UserSettings {
   soundEnabled: boolean
   animationsEnabled: boolean
   theme: string
+  presentationMode: PresentationMode
 }
 
 export interface UserProfile {
