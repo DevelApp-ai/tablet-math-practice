@@ -499,6 +499,7 @@ export const initializeUserProfile = (): UserProfile => ({
     soundEnabled: true,
     animationsEnabled: true,
     theme: 'default',
+    presentationMode: 'horizontal',
   },
 })
 
@@ -523,11 +524,19 @@ export const loadUserProfile = (): UserProfile => {
           lastActiveDate: '',
           returnBonusClaimed: false,
         },
-        settings: parsed.settings || {
-          soundEnabled: true,
-          animationsEnabled: true,
-          theme: 'default',
-        },
+        settings: parsed.settings
+          ? {
+              soundEnabled: parsed.settings.soundEnabled ?? true,
+              animationsEnabled: parsed.settings.animationsEnabled ?? true,
+              theme: parsed.settings.theme ?? 'default',
+              presentationMode: parsed.settings.presentationMode ?? 'horizontal',
+            }
+          : {
+              soundEnabled: true,
+              animationsEnabled: true,
+              theme: 'default',
+              presentationMode: 'horizontal',
+            },
       }
     } catch {
       // Fallback to new profile
