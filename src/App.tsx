@@ -223,10 +223,14 @@ function App() {
   }
 
   const handleSubmitAnswer = (answer: number, hintsUsed: number) => {
-    if (!currentSession || startTime === null) return
+    if (!currentSession) return
 
     const currentProblem = currentSession.problems[currentSession.currentProblemIndex]
-    const timeSpent = Math.floor((Date.now() - startTime) / 1000)
+    // startTime may be null if the learner skips before focusing the answer
+    // field (the timer is started on focus or problem change). Fall back to
+    // "now" so the submit/skip always proceeds instead of being silently
+    // dropped (issue #61: skip did nothing when startTime was null).
+    const timeSpent = startTime === null ? 0 : Math.floor((Date.now() - startTime) / 1000)
     const expected = getExpectedAnswer(currentProblem)
     const isCorrect = Math.abs(answer - expected) < 0.01
 

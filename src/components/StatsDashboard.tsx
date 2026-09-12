@@ -1,7 +1,7 @@
 import { SessionStats, PracticeSession } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { CheckCircle, XCircle, Clock, Target, Calendar, Flame } from '@phosphor-icons/react'
+import { CheckCircle, XCircle, Clock, Target, Calendar, Flame, TrendUp, ChartBar } from '@phosphor-icons/react'
 import {
   LineChart,
   Line,
@@ -129,7 +129,7 @@ export function StatsDashboard({ stats, history = [] }: StatsDashboardProps) {
         <Card className="p-6">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <TrendingUp size={20} className="text-primary" weight="duotone" />
+              <TrendUp size={20} className="text-primary" weight="duotone" />
               <h3 className="text-lg font-semibold">Accuracy Over Time</h3>
             </div>
             <div className="h-64">
@@ -161,7 +161,7 @@ export function StatsDashboard({ stats, history = [] }: StatsDashboardProps) {
         <Card className="p-6">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <BarChart size={20} className="text-accent" weight="duotone" />
+              <ChartBar size={20} className="text-accent" weight="duotone" />
               <h3 className="text-lg font-semibold">Overall Performance</h3>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
