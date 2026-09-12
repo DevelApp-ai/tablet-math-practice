@@ -39,7 +39,6 @@ import {
   loadUserProfile,
   saveUserProfile,
   calculateXPForProblem,
-  calculateSessionXP,
   addXPToProfile,
   calculateNewStreak,
   updateDailyStreak,
@@ -343,13 +342,9 @@ function App() {
         })
       }
       
-      // Add session XP to profile
-      const sessionXP = calculateSessionXP(currentSession.stats, currentSession.problems)
-      if (sessionXP > 0) {
-        const updatedProfile = addXPToProfile(userProfile, sessionXP)
-        setUserProfile(updatedProfile)
-      }
-      
+      // Per-problem XP is already awarded in handleSubmitAnswer; do not add
+      // calculateSessionXP again here (it re-sums the same per-problem XP and
+      // the perfect-session bonus, which would double-count).
       setSessionHistory((prev) => [...(prev || []), currentSession])
       setShowStats(true)
       toast.success('Session Complete!', {
