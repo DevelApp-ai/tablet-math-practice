@@ -67,4 +67,25 @@ describe('ProblemCard missing-addend feedback (#57)', () => {
     expect(screen.getByText('Correct! Well done!')).toBeInTheDocument()
     expect(onSubmit).toHaveBeenCalledWith(4, 0)
   })
+
+  // Regression for issue #61: "Skip this problem" must always submit and then
+  // reveal the Next button, even before the answer field is ever focused.
+  it('skip submits a zero answer without focusing the input first', async () => {
+    const problem: Problem = {
+      id: '3',
+      operand1: 4,
+      operand2: 3,
+      operation: 'addition',
+      correctAnswer: 7,
+    }
+    const user = userEvent.setup()
+    const onSubmit = vi.fn()
+    render(<ProblemCard {...baseProps} problem={problem} onSubmit={onSubmit} />)
+
+    // Click skip directly, never touching the answer field.
+    await user.click(screen.getByLabelText('Skip this problem'))
+
+    expect(onSubmit).toHaveBeenCalledWith(0, 0)
+    expect(screen.getByLabelText('Next problem')).toBeInTheDocument()
+  })
 })
