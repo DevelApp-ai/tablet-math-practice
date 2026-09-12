@@ -1,9 +1,9 @@
 import { Alert, AlertTitle, AlertDescription } from "./components/ui/alert";
 import { Button } from "./components/ui/button";
+import { AlertTriangleIcon, RefreshCwIcon, BugIcon } from "lucide-react";
+import { openErrorReport } from "./lib/diagnostics/errorReport";
 
-import { AlertTriangleIcon, RefreshCwIcon } from "lucide-react";
-
-export const ErrorFallback = ({ error, resetErrorBoundary }) => {
+export const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => {
   // When encountering an error in the development mode, rethrow it and don't display the boundary.
   // The parent UI will take care of showing a more helpful dialog.
   if (import.meta.env.DEV) throw error;
@@ -15,25 +15,35 @@ export const ErrorFallback = ({ error, resetErrorBoundary }) => {
           <AlertTriangleIcon />
           <AlertTitle>This app has encountered a runtime error</AlertTitle>
           <AlertDescription>
-            Something unexpected happened while running the application. The error details are shown below. Contact the app author and let them know about this issue.
+            Something unexpected happened while running the application. The error details are shown below. Use the button below to report this issue, or try again.
           </AlertDescription>
         </Alert>
-        
+
         <div className="bg-card border rounded-lg p-4 mb-6">
           <h3 className="font-semibold text-sm text-muted-foreground mb-2">Error Details:</h3>
           <pre className="text-xs text-destructive bg-muted/50 p-3 rounded border overflow-auto max-h-32">
             {error.message}
           </pre>
         </div>
-        
-        <Button 
-          onClick={resetErrorBoundary} 
-          className="w-full"
-          variant="outline"
-        >
-          <RefreshCwIcon />
-          Try Again
-        </Button>
+
+        <div className="flex gap-3">
+          <Button
+            onClick={() => openErrorReport(error)}
+            className="flex-1"
+            variant="default"
+          >
+            <BugIcon />
+            Report this error
+          </Button>
+          <Button
+            onClick={resetErrorBoundary}
+            className="flex-1"
+            variant="outline"
+          >
+            <RefreshCwIcon />
+            Try Again
+          </Button>
+        </div>
       </div>
     </div>
   );
