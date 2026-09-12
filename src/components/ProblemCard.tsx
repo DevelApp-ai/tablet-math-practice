@@ -193,7 +193,10 @@ export function ProblemCard({
 
           {manipulativesEnabled && !submitted && problem.unknownPosition && problem.unknownPosition !== 'result' && !isWordProblem(problem) && (
             <div className="flex justify-center py-2">
-              <BalanceScale left={problem.operand1} right={problem.operand2} />
+              <BalanceScale
+                left={problem.unknownPosition === 'operand1' ? null : problem.operand1}
+                right={problem.unknownPosition === 'operand2' ? null : problem.operand2}
+              />
             </div>
           )}
 
@@ -314,7 +317,7 @@ export function ProblemCard({
         {submitted && !isCorrect && diagnostic && diagnostic.category !== 'unknown' && (
           <BugFeedbackBanner
             diagnostic={diagnostic}
-            expectedAnswer={problem.correctAnswer}
+            expectedAnswer={getExpectedAnswer(problem)}
           />
         )}
 
