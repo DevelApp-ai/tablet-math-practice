@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile, PresentationMode, CanvasBackground, SessionMode, StoredMistake } from '@/lib/types'
-import { generateProblems, generateProblem, withUnknownPosition } from '@/lib/mathUtils'
+import { generateProblems, generateProblem, withUnknownPosition, getExpectedAnswer } from '@/lib/mathUtils'
 import { generateWordProblem } from '@/lib/wordProblems'
 import {
   recordMistake,
@@ -227,7 +227,8 @@ function App() {
 
     const currentProblem = currentSession.problems[currentSession.currentProblemIndex]
     const timeSpent = Math.floor((Date.now() - startTime) / 1000)
-    const isCorrect = Math.abs(answer - currentProblem.correctAnswer) < 0.01
+    const expected = getExpectedAnswer(currentProblem)
+    const isCorrect = Math.abs(answer - expected) < 0.01
 
     const updatedProblem = {
       ...currentProblem,
@@ -300,25 +301,32 @@ function App() {
 
     if (isCorrect) {
       setShowSuccess(true)
+      // Advance using the freshly-computed session so the recorded answer
+      // (correctAnswers, streak, XP, etc.) is preserved. Earlier this used a
+      // bare handleNextProblem() whose closure captured the pre-update
+      // currentSession, which discarded the just-recorded correct answer.
       setTimeout(() => {
         setShowSuccess(false)
-        handleNextProblem()
+        advanceFromSession(updatedSession)
       }, 800)
     }
   }
 
   const handleNextProblem = () => {
     if (!currentSession) return
+    advanceFromSession(currentSession)
+  }
 
-    if (currentSession.currentProblemIndex < currentSession.problems.length - 1) {
+  const advanceFromSession = (session: PracticeSession) => {
+    if (session.currentProblemIndex < session.problems.length - 1) {
       setCurrentSession({
-        ...currentSession,
-        currentProblemIndex: currentSession.currentProblemIndex + 1
+        ...session,
+        currentProblemIndex: session.currentProblemIndex + 1
       })
     } else {
       // Session complete - check for badges and add XP
-      if (currentSession.stats.accuracy === 100) {
-        const perfectBonus = calculatePerfectSessionBonus(currentSession.stats)
+      if (session.stats.accuracy === 100) {
+        const perfectBonus = calculatePerfectSessionBonus(session.stats)
         if (perfectBonus > 0) {
           const updatedProfile = addXPToProfile(userProfile, perfectBonus)
           setUserProfile(updatedProfile)
@@ -329,7 +337,7 @@ function App() {
       }
       
       // Check for newly earned badges
-      const newBadges = checkBadges(currentSession.stats, userProfile, currentSession.problems)
+      const newBadges = checkBadges(session.stats, userProfile, session.problems)
       if (newBadges.length > 0) {
         const profileWithBadges = addBadgesToProfile(userProfile, newBadges)
         setUserProfile(profileWithBadges)
@@ -345,10 +353,10 @@ function App() {
       // Per-problem XP is already awarded in handleSubmitAnswer; do not add
       // calculateSessionXP again here (it re-sums the same per-problem XP and
       // the perfect-session bonus, which would double-count).
-      setSessionHistory((prev) => [...(prev || []), currentSession])
+      setSessionHistory((prev) => [...(prev || []), session])
       setShowStats(true)
       toast.success('Session Complete!', {
-        description: `You scored ${currentSession.stats.accuracy}%`
+        description: `You scored ${session.stats.accuracy}%`
       })
     }
   }

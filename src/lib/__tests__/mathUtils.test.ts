@@ -1,4 +1,4 @@
-import { generateProblem, checkAnswer, generateProblems, getOperationSymbol, getHints, formatNumber } from '../mathUtils'
+import { generateProblem, checkAnswer, generateProblems, getOperationSymbol, getHints, formatNumber, getExpectedAnswer, withUnknownPosition } from '../mathUtils'
 import { DifficultyLevel, OperationType } from '../types'
 
 describe('generateProblem', () => {
@@ -144,6 +144,55 @@ describe('checkAnswer', () => {
     expect(checkAnswer(problem, 5)).toBe(true)
     expect(checkAnswer(problem, 5.0)).toBe(true)
     expect(checkAnswer(problem, 4)).toBe(false)
+  })
+})
+
+describe('missing-addend problems (getExpectedAnswer / checkAnswer)', () => {
+  // Regression for issue #57: '? + 3 = 7' should expect 4 (the missing operand),
+  // not 7 (the result), and entering 7 must be marked wrong.
+  test('unknown operand1 addition expects the missing operand, not the result', () => {
+    const problem = { id: '1', operand1: 4, operand2: 3, operation: 'addition' as const, correctAnswer: 7, unknownPosition: 'operand1' }
+    expect(getExpectedAnswer(problem)).toBe(4)
+    expect(checkAnswer(problem, 4)).toBe(true)
+    expect(checkAnswer(problem, 7)).toBe(false)
+  })
+
+  test('unknown operand2 addition expects the missing operand, not the result', () => {
+    const problem = { id: '1', operand1: 4, operand2: 3, operation: 'addition' as const, correctAnswer: 7, unknownPosition: 'operand2' }
+    expect(getExpectedAnswer(problem)).toBe(3)
+    expect(checkAnswer(problem, 3)).toBe(true)
+    expect(checkAnswer(problem, 7)).toBe(false)
+  })
+
+  test('unknown operand1 subtraction expects the missing operand', () => {
+    // 10 - 6 = 4 -> '? - 6 = 4' expects 10
+    const problem = { id: '1', operand1: 10, operand2: 6, operation: 'subtraction' as const, correctAnswer: 4, unknownPosition: 'operand1' }
+    expect(getExpectedAnswer(problem)).toBe(10)
+    expect(checkAnswer(problem, 10)).toBe(true)
+    expect(checkAnswer(problem, 4)).toBe(false)
+  })
+
+  test('unknown operand2 subtraction expects the missing operand', () => {
+    // 10 - 6 = 4 -> '10 - ? = 4' expects 6
+    const problem = { id: '1', operand1: 10, operand2: 6, operation: 'subtraction' as const, correctAnswer: 4, unknownPosition: 'operand2' }
+    expect(getExpectedAnswer(problem)).toBe(6)
+    expect(checkAnswer(problem, 6)).toBe(true)
+    expect(checkAnswer(problem, 4)).toBe(false)
+  })
+
+  test('result position (or unset) expects the equation result', () => {
+    const problem = { id: '1', operand1: 4, operand2: 3, operation: 'addition' as const, correctAnswer: 7 }
+    expect(getExpectedAnswer(problem)).toBe(7)
+    const withResult = { ...problem, unknownPosition: 'result' as const }
+    expect(getExpectedAnswer(withResult)).toBe(7)
+  })
+
+  test('withUnknownPosition always assigns one of the allowed positions', () => {
+    for (let i = 0; i < 100; i++) {
+      const base = generateProblem('intermediate', 'addition')
+      const p = withUnknownPosition(base, 'intermediate')
+      expect(['result', 'operand1', 'operand2']).toContain(p.unknownPosition)
+    }
   })
 })
 
