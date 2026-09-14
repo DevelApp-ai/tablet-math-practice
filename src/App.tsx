@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile, PresentationMode, CanvasBackground, SessionMode, StoredMistake } from '@/lib/types'
 import { generateProblems, generateProblem, withUnknownPosition, getExpectedAnswer } from '@/lib/mathUtils'
 import { generateWordProblem } from '@/lib/wordProblems'
@@ -33,7 +33,8 @@ import { MistakeVaultModal } from '@/components/workflow/MistakeVaultModal'
 import { StrokeSession } from '@/lib/ink/strokeStore'
 import { ArrowLeft, GraduationCap, ChartBar, Trophy, Flame, Vault, Target, Gauge } from '@phosphor-icons/react'
 import { AnimatePresence } from 'framer-motion'
-import { toast, Toaster } from 'sonner'
+import { toast, Toaster } from 'sonne
+r'
 import {
   initializeUserProfile,
   loadUserProfile,
@@ -52,12 +53,20 @@ import {
 function App() {
   // Load session history and current session from localStorage
   const [sessionHistory, setSessionHistory] = useState<PracticeSession[]>(() => {
-    const saved = localStorage.getItem('session-history')
-    return saved ? JSON.parse(saved) : []
+    try {
+      const saved = localStorage.getItem('session-history')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
   })
   const [currentSession, setCurrentSession] = useState<PracticeSession | null>(() => {
-    const saved = localStorage.getItem('current-session')
-    return saved ? JSON.parse(saved) : null
+    try {
+      const saved = localStorage.getItem('current-session')
+      return saved ? JSON.parse(saved) : null
+    } catch {
+      return null
+    }
   })
   const [difficulty, setDifficulty] = useState<DifficultyLevel | null>(null)
   const [operationType, setOperationType] = useState<OperationType>('addition')
@@ -84,7 +93,8 @@ function App() {
 
   // Save session history and current session to localStorage
   useEffect(() => {
-    localStorage.setItem('session-history', JSON.stringify(sessionHistory))
+    localStorage.setItem('session-history', JSON.st
+ringify(sessionHistory))
   }, [sessionHistory])
   
   useEffect(() => {
@@ -129,20 +139,13 @@ function App() {
     return problems
   }
 
-  // Memoize problem generation
-  const memoizedProblems = useMemo(() => {
-    if (difficulty) {
-      return buildProblems(10, difficulty, operationType)
-    }
-    return []
-  }, [difficulty, operationType])
-
   const startSession = (selectedDifficulty: DifficultyLevel, problemCount: number = 20) => {
     setDifficulty(selectedDifficulty)
     const problems = buildProblems(problemCount, selectedDifficulty, operationType)
     
     // Update daily streak when starting a new session
-    const updatedDailyStreak = updateDailyStreak(userProfile.dailyStreak, new Date().toISOString().split('T')[0])
+    const updatedDailyStreak = updat
+eDailyStreak(userProfile.dailyStreak, new Date().toISOString().split('T')[0])
     const updatedProfile = { ...userProfile, dailyStreak: updatedDailyStreak }
     setUserProfile(updatedProfile)
     
@@ -210,7 +213,8 @@ function App() {
         longestStreak: 0,
       },
       startTime: Date.now(),
-      guidedMode: true,
+      g
+uidedMode: true,
       sessionMode: 'mastery',
       isRemediation: true,
     }
@@ -263,7 +267,8 @@ function App() {
     const correctAnswers = updatedProblems.filter(p => p.isCorrect === true).length
     const incorrectAnswers = updatedProblems.filter(p => p.isCorrect === false).length
     const totalAnswered = correctAnswers + incorrectAnswers
-    const totalTime = updatedProblems.reduce((sum, p) => sum + (p.timeSpent || 0), 0)
+    const totalTime = updatedProblems.reduce((s
+um, p) => sum + (p.timeSpent || 0), 0)
 
     // Calculate streak
     const previousProblem = currentSession.problems[currentSession.currentProblemIndex - 1]
@@ -317,7 +322,8 @@ function App() {
   }
 
   const handleNextProblem = () => {
-    if (!currentSession) return
+    if (!current
+Session) return
     advanceFromSession(currentSession)
   }
 
@@ -370,7 +376,8 @@ function App() {
       const unanswered = currentSession.problems.filter(p => p.userAnswer === undefined).length
       if (unanswered > 3) {
         if (!window.confirm(`You have ${unanswered} unanswered problems. Exit anyway?`)) {
-          return
+       
+   return
         }
       }
     }
@@ -447,7 +454,8 @@ function App() {
   }
 
   const handleSettingsChange = (
-    patch: Partial<Pick<UserProfile['settings'], 'canvasBackground' | 'scratchpadEnabled' | 'palmRejection' | 'manipulativesEnabled' | 'wordProblemsEnabled'>>
+    patch: Partial<Pick<UserProfile['settings'], 'canvasBack
+ground' | 'scratchpadEnabled' | 'palmRejection' | 'manipulativesEnabled' | 'wordProblemsEnabled'>>
   ) => {
     setUserProfile({
       ...userProfile,
@@ -495,7 +503,8 @@ function App() {
 
       {/* Gamification Sidebar (Slide-in Panel) */}
       {showGamification && currentSession && (
-        <div className="fixed top-0 right-0 z-50 w-80 h-full bg-white dark:bg-gray-900 shadow-2xl transform translate-x-0 transition-transform duration-300 ease-in-out no-print">
+        <div className="fixed top-0 right-0 z-50 w-80 h-full bg-white dark:bg-gray-900 shadow-2xl transform translate-x-0 transition-transform duration-300 ease-in-out no-print
+">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
@@ -545,7 +554,8 @@ function App() {
                 <Label className="text-base font-medium">Session Mode</Label>
                 <div className="flex items-center gap-2">
                   <Button
-                    variant={sessionMode === 'mastery' ? 'default' : 'outline'}
+                    variant={sessionMode === 'mastery' ? 'de
+fault' : 'outline'}
                     size="sm"
                     onClick={() => handleSessionModeChange('mastery')}
                     className="gap-1"
@@ -590,7 +600,8 @@ function App() {
                   }
                 />
                 <Label htmlFor="manipulatives-mode" className="text-base cursor-pointer">
-                  Show Visual Manipulatives (ten-frames, number lines, arrays)
+                  Show V
+isual Manipulatives (ten-frames, number lines, arrays)
                 </Label>
               </div>
 
@@ -637,7 +648,8 @@ function App() {
                 <CanvasGridSelector
                   value={userProfile.settings.canvasBackground}
                   onChange={(background) =>
-                    handleSettingsChange({ canvasBackground: background })
+             
+       handleSettingsChange({ canvasBackground: background })
                   }
                 />
               </div>
@@ -690,7 +702,8 @@ function App() {
                 <h3 className="text-lg font-semibold text-center">Stroke Replay (Educator)</h3>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {currentSession.problems
-                    .filter((p) => strokeSessions[p.id])
+         
+           .filter((p) => strokeSessions[p.id])
                     .map((p, idx) => (
                       <Button
                         key={p.id}
@@ -736,7 +749,8 @@ function App() {
                 guidedMode={currentSession.guidedMode}
                 presentationMode={userProfile.settings.presentationMode}
                 canvasBackground={userProfile.settings.canvasBackground}
-                scratchpadEnabled={userProfile.settings.scratchpadEnabled}
+                scratchpadEnabled={userProfile.s
+ettings.scratchpadEnabled}
                 palmRejection={userProfile.settings.palmRejection}
                 manipulativesEnabled={userProfile.settings.manipulativesEnabled}
                 onSubmit={handleSubmitAnswer}

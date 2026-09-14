@@ -80,7 +80,8 @@ export const calculateXPToNextLevel = (xp: number): number => {
  * @param xpEarned - XP to add
  * @returns Updated user profile
  */
-export const addXPToProfile = (profile: UserProfile, xpEarned: number): UserProfile => {
+export con
+st addXPToProfile = (profile: UserProfile, xpEarned: number): UserProfile => {
   const newXP = profile.xp + xpEarned
   const newLevel = calculateLevelFromXP(newXP)
   const newXPToNextLevel = calculateXPToNextLevel(newXP)
@@ -149,7 +150,8 @@ export const updateDailyStreak = (
         dailyStreak.longestStreak,
         dailyStreak.currentStreak + 1
       ),
-      lastActiveDate: today,
+  
+    lastActiveDate: today,
       returnBonusClaimed: false,
     }
   }
@@ -226,7 +228,8 @@ const BADGE_DEFINITIONS: Record<BadgeId, Omit<Badge, 'earned' | 'earnedAt'>> = {
   marathon: {
     id: 'marathon',
     name: 'Marathon',
-    description: 'Solve 100 problems in a single session',
+    description: 'Solve 100 problems
+ in a single session',
     icon: '🏃',
   },
   weekend_warrior: {
@@ -300,7 +303,8 @@ export const checkBadges = (
   }
 
   // 1. First Blood - First correct answer
-  if (sessionStats.correctAnswers >= 1 && !isAlreadyEarned('first_blood')) {
+  if (sessionStats.correctAnswers >= 1 && !isAlreadyEarned('f
+irst_blood')) {
     earnedBadges.push({
       ...BADGE_DEFINITIONS.first_blood,
       earned: true,
@@ -372,7 +376,8 @@ export const checkBadges = (
   const operationCounts: Record<string, number> = {}
   problems.forEach((p) => {
     if (p.isCorrect && p.operation) {
-      operationCounts[p.operation] = (operationCounts[p.operation] || 0) + 1
+      operationCounts[p.operation] = (operationCounts[p.operation] || 0
+) + 1
     }
   })
 
@@ -445,7 +450,8 @@ export const calculatePerfectSessionBonus = (sessionStats: SessionStats): number
 
 /**
  * Calculate total XP for a session
- * @param sessionStats - Session statistics
+ * @param sessionStats - Se
+ssion statistics
  * @param problems - Array of problems
  * @returns Total XP earned in session
  */
@@ -459,12 +465,10 @@ export const calculateSessionXP = (
   problems.forEach((problem) => {
     const isCorrect = problem.isCorrect === true
     const timeTaken = problem.timeSpent || 0
-    const wasPreviousCorrect = currentStreak > 0
-
     totalXP += calculateXPForProblem(isCorrect, timeTaken, currentStreak)
 
     if (isCorrect) {
-      currentStreak += wasPreviousCorrect ? 1 : 1
+      currentStreak += 1
     } else {
       currentStreak = 0
     }
@@ -521,7 +525,8 @@ export const loadUserProfile = (): UserProfile => {
       return {
         xp: parsed.xp || 0,
         level: parsed.level || calculateLevelFromXP(parsed.xp || 0),
-        xpToNextLevel: parsed.xpToNextLevel || calculateXPToNextLevel(parsed.xp || 0),
+    
+    xpToNextLevel: parsed.xpToNextLevel || calculateXPToNextLevel(parsed.xp || 0),
         badges: parsed.badges || initializeBadges(),
         dailyStreak: parsed.dailyStreak || {
           currentStreak: 0,
@@ -576,7 +581,8 @@ export const saveUserProfile = (profile: UserProfile): void => {
  * Get XP rewards configuration
  * @returns XP rewards object
  */
-export const getXPRewards = () => XP_REWARDS
+export 
+const getXPRewards = () => XP_REWARDS
 
 /**
  * Get level thresholds
