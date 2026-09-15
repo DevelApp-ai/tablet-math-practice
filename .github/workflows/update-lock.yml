@@ -1,0 +1,30 @@
+name: Update package-lock
+
+on:
+  push:
+    branches: [fix/wire-i18n-64]
+
+permissions:
+  contents: write
+
+jobs:
+  update-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Update lockfile
+        run: npm install --package-lock-only
+      - name: Commit lockfile if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- package-lock.json; then
+            echo "package-lock.json is up to date"
+          else
+            git add package-lock.json
+            git commit -m "chore: sync package-lock.json with i18n dependencies"
+            git push
+          fi

@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts'
+import { useTranslation } from 'react-i18next'
 
 interface StatsDashboardProps {
   stats: SessionStats
@@ -19,6 +20,7 @@ interface StatsDashboardProps {
 }
 
 export function StatsDashboard({ stats, history = [] }: StatsDashboardProps) {
+  const { t } = useTranslation()
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
@@ -30,7 +32,7 @@ export function StatsDashboard({ stats, history = [] }: StatsDashboardProps) {
     .slice(-7) // Last 7 sessions
     .reverse()
     .map((session, index) => ({
-      name: `Session ${history.length - index}`,
+      name: t('stats.sessionN', { n: history.length - index }),
       accuracy: session.stats.accuracy,
       correct: session.stats.correctAnswers,
       total: session.stats.totalProblems
@@ -38,25 +40,25 @@ export function StatsDashboard({ stats, history = [] }: StatsDashboardProps) {
 
   const statCards = [
     {
-      label: 'Accuracy',
+      label: t('stats.accuracy'),
       value: stats.accuracy > 0 ? `${stats.accuracy}%` : 'N/A',
       icon: Target,
       color: 'text-primary'
     },
     {
-      label: 'Correct',
+      label: t('stats.correct'),
       value: stats.correctAnswers,
       icon: CheckCircle,
       color: 'text-success'
     },
     {
-      label: 'Incorrect',
+      label: t('stats.incorrect'),
       value: stats.incorrectAnswers,
       icon: XCircle,
       color: 'text-destructive'
     },
     {
-      label: 'Avg Time',
+      label: t('stats.averageTime'),
       value: stats.averageTime > 0 ? formatTime(stats.averageTime) : 'N/A',
       icon: Clock,
       color: 'text-accent'
@@ -66,7 +68,7 @@ export function StatsDashboard({ stats, history = [] }: StatsDashboardProps) {
   // Add streak card if streak data exists
   if (stats.currentStreak !== undefined) {
     statCards.push({
-      label: 'Streak',
+      label: t('stats.streakShort'),
       value: stats.currentStreak > 0 ? stats.currentStreak : 0,
       icon: Flame,
       color: 'text-orange-500'
@@ -76,7 +78,7 @@ export function StatsDashboard({ stats, history = [] }: StatsDashboardProps) {
   // Add longest streak if available
   if (stats.longestStreak !== undefined && stats.longestStreak > 0) {
     statCards.push({
-      label: 'Longest Streak',
+      label: t('stats.longestStreak'),
       value: stats.longestStreak,
       icon: Flame,
       color: 'text-purple-500'
@@ -95,7 +97,7 @@ export function StatsDashboard({ stats, history = [] }: StatsDashboardProps) {
       {/* Progress Bar */}
       <div>
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium">Progress</span>
+          <span className="text-sm font-medium">{t('stats.progress')}</span>
           <span className="text-sm text-muted-foreground">
             {stats.correctAnswers + stats.incorrectAnswers} / {stats.totalProblems}
           </span>
@@ -130,7 +132,7 @@ export function StatsDashboard({ stats, history = [] }: StatsDashboardProps) {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <TrendUp size={20} className="text-primary" weight="duotone" />
-              <h3 className="text-lg font-semibold">Accuracy Over Time</h3>
+              <h3 className="text-lg font-semibold">{t('stats.accuracyOverTime')}</h3>
             </div>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -143,7 +145,7 @@ export function StatsDashboard({ stats, history = [] }: StatsDashboardProps) {
                   <Line
                     type="monotone"
                     dataKey="accuracy"
-                    name="Accuracy %"
+                    name={t('stats.accuracyPercent')}
                     stroke="var(--color-primary)"
                     strokeWidth={3}
                     dot={{ r: 6 }}
@@ -162,20 +164,20 @@ export function StatsDashboard({ stats, history = [] }: StatsDashboardProps) {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <ChartBar size={20} className="text-accent" weight="duotone" />
-              <h3 className="text-lg font-semibold">Overall Performance</h3>
+              <h3 className="text-lg font-semibold">{t('stats.overallPerformance')}</h3>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="text-center p-4 bg-secondary/30 rounded-lg">
                 <div className="text-3xl font-bold">{totalSessions}</div>
-                <div className="text-sm text-muted-foreground">Total Sessions</div>
+                <div className="text-sm text-muted-foreground">{t('stats.totalSessions')}</div>
               </div>
               <div className="text-center p-4 bg-secondary/30 rounded-lg">
                 <div className="text-3xl font-bold">{avgAccuracy}%</div>
-                <div className="text-sm text-muted-foreground">Avg Accuracy</div>
+                <div className="text-sm text-muted-foreground">{t('stats.avgAccuracy')}</div>
               </div>
               <div className="text-center p-4 bg-secondary/30 rounded-lg">
                 <div className="text-3xl font-bold">{totalProblemsSolved}</div>
-                <div className="text-sm text-muted-foreground">Total Problems</div>
+                <div className="text-sm text-muted-foreground">{t('stats.totalProblems')}</div>
               </div>
             </div>
           </div>
