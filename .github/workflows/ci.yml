@@ -35,16 +35,19 @@ jobs:
 
       - name: Build
         run: |
-          npm run build 2>&1 | tee build-output.log || {
+          if npm run build > build-output.log 2>&1; then
+            echo "Build succeeded"
+          else
             {
               echo '### Build failure output (debug capture)'
               echo '```'
               tail -n 150 build-output.log
               echo '```'
             } > comment.md
+            cat build-output.log
             gh pr comment "${{ github.event.pull_request.number }}" --body-file comment.md || true
             exit 1
-          }
+          fi
         env:
           NODE_ENV: production
           GH_TOKEN: ${{ github.token }}
