@@ -459,12 +459,10 @@ export const calculateSessionXP = (
   problems.forEach((problem) => {
     const isCorrect = problem.isCorrect === true
     const timeTaken = problem.timeSpent || 0
-    const wasPreviousCorrect = currentStreak > 0
-
     totalXP += calculateXPForProblem(isCorrect, timeTaken, currentStreak)
 
     if (isCorrect) {
-      currentStreak += wasPreviousCorrect ? 1 : 1
+      currentStreak += 1
     } else {
       currentStreak = 0
     }

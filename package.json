@@ -84,10 +84,5 @@
         "typescript-eslint": "^8.38.0",
         "vite": "^6.3.5",
         "vitest": "^5.0.0"
-    },
-    "workspaces": {
-        "packages": [
-            "packages/*"
-        ]
     }
 }

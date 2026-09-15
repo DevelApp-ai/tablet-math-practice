@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile, PresentationMode, CanvasBackground, SessionMode, StoredMistake } from '@/lib/types'
 import { generateProblems, generateProblem, withUnknownPosition, getExpectedAnswer } from '@/lib/mathUtils'
 import { generateWordProblem } from '@/lib/wordProblems'
@@ -52,12 +52,20 @@ import {
 function App() {
   // Load session history and current session from localStorage
   const [sessionHistory, setSessionHistory] = useState<PracticeSession[]>(() => {
-    const saved = localStorage.getItem('session-history')
-    return saved ? JSON.parse(saved) : []
+    try {
+      const saved = localStorage.getItem('session-history')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
   })
   const [currentSession, setCurrentSession] = useState<PracticeSession | null>(() => {
-    const saved = localStorage.getItem('current-session')
-    return saved ? JSON.parse(saved) : null
+    try {
+      const saved = localStorage.getItem('current-session')
+      return saved ? JSON.parse(saved) : null
+    } catch {
+      return null
+    }
   })
   const [difficulty, setDifficulty] = useState<DifficultyLevel | null>(null)
   const [operationType, setOperationType] = useState<OperationType>('addition')
@@ -128,14 +136,6 @@ function App() {
     }
     return problems
   }
-
-  // Memoize problem generation
-  const memoizedProblems = useMemo(() => {
-    if (difficulty) {
-      return buildProblems(10, difficulty, operationType)
-    }
-    return []
-  }, [difficulty, operationType])
 
   const startSession = (selectedDifficulty: DifficultyLevel, problemCount: number = 20) => {
     setDifficulty(selectedDifficulty)
