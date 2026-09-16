@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile, PresentationMode, CanvasBackground, SessionMode, StoredMistake } from '@/lib/types'
+import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile, PresentationMode, SessionMode, StoredMistake } from '@/lib/types'
 import { generateProblems, generateProblem, withUnknownPosition, getExpectedAnswer } from '@/lib/mathUtils'
 import { generateWordProblem } from '@/lib/wordProblems'
 import {
@@ -32,12 +32,11 @@ import { StrokeReplayViewer } from '@/components/canvas/StrokeReplayViewer'
 import { MistakeVaultModal } from '@/components/workflow/MistakeVaultModal'
 import { LanguageSelector } from '@/components/LanguageSelector'
 import { StrokeSession } from '@/lib/ink/strokeStore'
-import { ArrowLeft, GraduationCap, ChartBar, Trophy, Flame, Vault, Target, Gauge } from '@phosphor-icons/react'
+import { ArrowLeft, GraduationCap, ChartBar, Trophy, Vault, Target, Gauge } from '@phosphor-icons/react'
 import { AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { toast, Toaster } from 'sonner'
 import {
-  initializeUserProfile,
   loadUserProfile,
   saveUserProfile,
   calculateXPForProblem,
@@ -153,7 +152,7 @@ function App() {
     const returnBonus = getReturnBonus(updatedProfile.dailyStreak)
     if (returnBonus > 0) {
       const profileWithBonus = addXPToProfile(updatedProfile, returnBonus)
-      setUserProfile(claimReturnBonus(profileWithBonus.dailyStreak))
+      setUserProfile({ ...profileWithBonus, dailyStreak: claimReturnBonus(profileWithBonus.dailyStreak) })
       toast.success(`+${returnBonus} XP Return Bonus!`, {
         description: 'Welcome back! Here is your return bonus.',
       })

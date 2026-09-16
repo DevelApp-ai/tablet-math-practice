@@ -71,7 +71,6 @@ export function solveVertical(problem: Problem): VerticalSolution | null {
   if (!supportsVerticalLayout(problem)) return null
 
   const { operand1, operand2, operation, correctAnswer } = problem
-  const columns = requiredColumns(operand1, operand2)
 
   if (operation === 'addition' || operation === 'subtraction') {
     const answerDigits = Math.max(

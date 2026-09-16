@@ -3,9 +3,7 @@
  * Displays user's XP and progress towards next level
  */
 
-import { useMemo } from 'react'
 import { UserProfile } from '../../lib/types'
-import { calculateXPToNextLevel, calculateLevelFromXP } from '../../lib/scoring'
 
 interface XPProgressBarProps {
   profile: UserProfile

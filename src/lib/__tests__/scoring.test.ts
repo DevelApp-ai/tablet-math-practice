@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { Problem, PracticeSession, SessionStats, XP_REWARDS } from '../types'
 import {
   calculateXPForProblem,
@@ -306,7 +306,7 @@ describe('XP Accounting (no double-count)', () => {
   // end. calculateSessionXP re-sums the same per-problem XP plus the perfect
   // bonus, which would double the awarded XP if added on top.
 
-  const fastProblem = (correct: boolean, timeSpent: number = 1000): Problem =>
+  const fastProblem = (correct: boolean, _timeSpent: number = 1000): Problem =>
     createProblem(5, 3, 'addition', 8, correct ? 8 : 9, correct)
 
   it('sum of per-problem XP equals session XP minus the perfect bonus (counted once)', () => {

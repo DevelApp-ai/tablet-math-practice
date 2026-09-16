@@ -1,7 +1,7 @@
 import { SessionStats, PracticeSession } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { CheckCircle, XCircle, Clock, Target, Calendar, Flame, TrendUp, ChartBar } from '@phosphor-icons/react'
+import { CheckCircle, XCircle, Clock, Target, Flame, TrendUp, ChartBar } from '@phosphor-icons/react'
 import {
   LineChart,
   Line,
