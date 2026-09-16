@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Printer } from '@phosphor-icons/react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface PrintWorksheetProps {
   problems: Problem[]
@@ -16,6 +17,7 @@ interface PrintWorksheetProps {
 export function PrintWorksheet({ problems, difficulty, operation, onGenerate }: PrintWorksheetProps) {
   const [problemCount, setProblemCount] = useState('10')
   const [showDialog, setShowDialog] = useState(false)
+  const { t } = useTranslation()
 
   const handlePrint = () => {
     window.print()
@@ -32,12 +34,12 @@ export function PrintWorksheet({ problems, difficulty, operation, onGenerate }: 
         <DialogTrigger asChild>
           <Button variant="outline" className="gap-2" onClick={() => setShowDialog(true)}>
             <Printer size={20} weight="duotone" />
-            Print Worksheet
+            {t('worksheet.print')}
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto print-only">
           <DialogHeader>
-            <DialogTitle>Worksheet Preview</DialogTitle>
+            <DialogTitle>{t('worksheet.preview')}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
@@ -47,15 +49,15 @@ export function PrintWorksheet({ problems, difficulty, operation, onGenerate }: 
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="10">10 Problems</SelectItem>
-                  <SelectItem value="20">20 Problems</SelectItem>
-                  <SelectItem value="30">30 Problems</SelectItem>
+                  <SelectItem value="10">{t('worksheet.problemsCount', { count: 10 })}</SelectItem>
+                  <SelectItem value="20">{t('worksheet.problemsCount', { count: 20 })}</SelectItem>
+                  <SelectItem value="30">{t('worksheet.problemsCount', { count: 30 })}</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={handleGenerate}>Generate New</Button>
+              <Button onClick={handleGenerate}>{t('worksheet.generateNew')}</Button>
               <Button onClick={handlePrint} variant="default" className="gap-2 ml-auto">
                 <Printer size={20} />
-                Print
+                {t('worksheet.printAction')}
               </Button>
             </div>
 
@@ -82,16 +84,17 @@ function WorksheetContent({ problems, difficulty, operation }: {
   difficulty: string
   operation: string 
 }) {
+  const { t } = useTranslation()
   return (
     <div className="space-y-6">
       <div className="text-center border-b-2 pb-4">
-        <h1 className="text-3xl font-bold">Math Practice Worksheet</h1>
+        <h1 className="text-3xl font-bold">{t('worksheet.titleFull')}</h1>
         <p className="text-lg text-muted-foreground mt-2">
-          {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} - {operation.charAt(0).toUpperCase() + operation.slice(1)}
+          {t(`difficulty.${difficulty}`)} - {t(`operations.${operation}`)}
         </p>
         <div className="mt-4 flex gap-8 justify-center text-sm">
-          <div>Name: ___________________________</div>
-          <div>Date: ___________________________</div>
+          <div>{t('worksheet.nameField')}</div>
+          <div>{t('worksheet.dateField')}</div>
         </div>
       </div>
 
@@ -114,11 +117,12 @@ function WorksheetContent({ problems, difficulty, operation }: {
 }
 
 function AnswerKey({ problems }: { problems: Problem[] }) {
+  const { t } = useTranslation()
   return (
     <div className="space-y-6">
       <div className="text-center border-b-2 pb-4">
-        <h2 className="text-2xl font-bold">Answer Key</h2>
-        <p className="text-sm text-muted-foreground mt-1">For teacher/parent use only</p>
+        <h2 className="text-2xl font-bold">{t('worksheet.answerKey')}</h2>
+        <p className="text-sm text-muted-foreground mt-1">{t('worksheet.answerKeyNote')}</p>
       </div>
 
       <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4 print:grid-cols-8 print:gap-1">

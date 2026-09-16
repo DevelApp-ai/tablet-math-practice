@@ -1,6 +1,7 @@
 import { OperationType } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Plus, Minus, X, Divide, Shuffle } from '@phosphor-icons/react'
+import { useTranslation } from 'react-i18next'
 
 interface OperationSelectProps {
   selected: OperationType
@@ -8,14 +9,15 @@ interface OperationSelectProps {
 }
 
 const operations = [
-  { type: 'addition' as OperationType, label: 'Addition', icon: Plus },
-  { type: 'subtraction' as OperationType, label: 'Subtraction', icon: Minus },
-  { type: 'multiplication' as OperationType, label: 'Multiplication', icon: X },
-  { type: 'division' as OperationType, label: 'Division', icon: Divide },
-  { type: 'mixed' as OperationType, label: 'Mixed', icon: Shuffle }
+  { type: 'addition' as OperationType, icon: Plus },
+  { type: 'subtraction' as OperationType, icon: Minus },
+  { type: 'multiplication' as OperationType, icon: X },
+  { type: 'division' as OperationType, icon: Divide },
+  { type: 'mixed' as OperationType, icon: Shuffle }
 ]
 
 export function OperationSelect({ selected, onSelect }: OperationSelectProps) {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-wrap gap-3 justify-center">
       {operations.map((op) => {
@@ -28,7 +30,7 @@ export function OperationSelect({ selected, onSelect }: OperationSelectProps) {
             className="gap-2 h-12 px-6"
           >
             <Icon size={20} weight="bold" />
-            {op.label}
+            {t(`operations.${op.type}`)}
           </Button>
         )
       })}

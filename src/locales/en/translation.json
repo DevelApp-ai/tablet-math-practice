@@ -2,7 +2,8 @@
   "app": {
     "title": "Tablet Math Practice",
     "subtitle": "Improve your math skills with interactive exercises",
-    "tagline": "Practice makes perfect!"
+    "tagline": "Practice makes perfect!",
+    "header": "Math Practice"
   },
   "nav": {
     "home": "Home",
@@ -18,7 +19,10 @@
     "advanced": "Advanced",
     "expert": "Expert",
     "select": "Select Difficulty",
-    "description": "Choose your skill level"
+    "description": "Choose your skill level",
+    "chooseLevel": "Choose Your Level",
+    "selectHint": "Select a difficulty to begin practicing",
+    "tapToStart": "Tap to Start"
   },
   "operations": {
     "addition": "Addition",
@@ -73,7 +77,19 @@
     "overallAccuracy": "Overall Accuracy",
     "sessionsCompleted": "Sessions Completed",
     "bestSession": "Best Session",
-    "progress": "Progress"
+    "progress": "Progress",
+    "howYouDid": "Here's how you did:",
+    "strokeReplay": "Stroke Replay (Educator)",
+    "problemN": "Problem {{n}}",
+    "practiceAgain": "Practice Again",
+    "changeSettings": "Change Settings",
+    "streakShort": "Streak",
+    "accuracyOverTime": "Accuracy Over Time",
+    "accuracyPercent": "Accuracy %",
+    "overallPerformance": "Overall Performance",
+    "totalSessions": "Total Sessions",
+    "avgAccuracy": "Avg Accuracy",
+    "sessionN": "Session {{n}}"
   },
   "worksheet": {
     "title": "Math Worksheet",
@@ -85,7 +101,15 @@
     "generate": "Generate New Worksheet",
     "problemCount": "Number of problems",
     "difficulty": "Difficulty",
-    "operation": "Operation Type"
+    "operation": "Operation Type",
+    "preview": "Worksheet Preview",
+    "problemsCount": "{{count}} Problems",
+    "generateNew": "Generate New",
+    "printAction": "Print",
+    "titleFull": "Math Practice Worksheet",
+    "nameField": "Name: ___________________________",
+    "dateField": "Date: ___________________________",
+    "answerKeyNote": "For teacher/parent use only"
   },
   "settings": {
     "title": "Settings",
@@ -141,7 +165,8 @@
     "of": "of",
     "to": "to",
     "for": "for",
-    "with": "with"
+    "with": "with",
+    "correctWellDone": "Correct! Well done!"
   },
   "actions": {
     "continue": "Continue",
@@ -165,5 +190,24 @@
     "minutes": "{{count}} minute{{plural}}",
     "hours": "{{count}} hour{{plural}}",
     "format": "{{hours}}h {{minutes}}m {{seconds}}s"
+  },
+  "difficultyDesc": {
+    "beginner": "Single-digit problems",
+    "intermediate": "Double-digit challenges",
+    "advanced": "Multi-digit & decimals"
+  },
+  "landing": {
+    "practiceSettings": "Practice Settings",
+    "sessionMode": "Session Mode",
+    "mastery": "Mastery",
+    "fluency": "Fluency (timed sprint)",
+    "modeDescription": "Mastery: untimed with hints and manipulatives. Fluency: timed sprint, no hints — speed earns bonus XP.",
+    "verticalLayout": "Vertical Layout (column math with carry/borrow)",
+    "manipulatives": "Show Visual Manipulatives (ten-frames, number lines, arrays)",
+    "wordProblems": "Word Problems (story problems with read-aloud)",
+    "scratchpad": "Show Scratchpad (rough-work zone)",
+    "palmRejection": "Palm Rejection (ignore touch while using stylus)",
+    "mistakeVault": "Mistake Vault",
+    "viewPreviousSessions": "View Previous Sessions"
   }
 }
