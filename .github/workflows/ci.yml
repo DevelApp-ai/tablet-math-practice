@@ -11,7 +11,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -34,23 +33,9 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: |
-          if npm run build > build-output.log 2>&1; then
-            echo "Build succeeded"
-          else
-            {
-              echo '### Build failure output (debug capture)'
-              echo '```'
-              tail -n 150 build-output.log
-              echo '```'
-            } > comment.md
-            cat build-output.log
-            gh pr comment "${{ github.event.pull_request.number }}" --body-file comment.md || true
-            exit 1
-          fi
+        run: npm run build
         env:
           NODE_ENV: production
-          GH_TOKEN: ${{ github.token }}
 
       - name: Test
         run: npm test
