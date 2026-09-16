@@ -31,7 +31,7 @@ export function generateProblem(
       correctAnswer = operand1 - operand2
       break
 
-    case 'multiplication':
+    case 'multiplication': {
       const multRange = difficulty === 'beginner' 
         ? { min: 1, max: 12 }
         : difficulty === 'intermediate'
@@ -41,6 +41,7 @@ export function generateProblem(
       operand2 = randomInt(multRange.min, multRange.max)
       correctAnswer = operand1 * operand2
       break
+    }
 
     case 'division':
       if (difficulty === 'beginner') {

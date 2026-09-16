@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react'
-import { Badge, UserProfile } from '../../lib/types'
+import { UserProfile } from '../../lib/types'
 import { getBadgeDefinition } from '../../lib/scoring'
 
 interface BadgeDisplayProps {

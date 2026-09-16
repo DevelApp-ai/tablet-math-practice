@@ -130,7 +130,7 @@ export const calculateNewStreak = (
  */
 export const updateDailyStreak = (
   dailyStreak: DailyStreak,
-  lastActiveDate: string
+  _lastActiveDate: string
 ): DailyStreak => {
   const today = new Date().toISOString().split('T')[0]
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
@@ -309,21 +309,21 @@ export const checkBadges = (
   }
 
   // 2. Perfect streaks
-  if (sessionStats.longestStreak >= 10 && !isAlreadyEarned('perfect_10')) {
+  if ((sessionStats.longestStreak ?? 0) >= 10 && !isAlreadyEarned('perfect_10')) {
     earnedBadges.push({
       ...BADGE_DEFINITIONS.perfect_10,
       earned: true,
       earnedAt: now,
     })
   }
-  if (sessionStats.longestStreak >= 25 && !isAlreadyEarned('perfect_25')) {
+  if ((sessionStats.longestStreak ?? 0) >= 25 && !isAlreadyEarned('perfect_25')) {
     earnedBadges.push({
       ...BADGE_DEFINITIONS.perfect_25,
       earned: true,
       earnedAt: now,
     })
   }
-  if (sessionStats.longestStreak >= 50 && !isAlreadyEarned('perfect_50')) {
+  if ((sessionStats.longestStreak ?? 0) >= 50 && !isAlreadyEarned('perfect_50')) {
     earnedBadges.push({
       ...BADGE_DEFINITIONS.perfect_50,
       earned: true,
