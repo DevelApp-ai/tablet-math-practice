@@ -1,31 +1,35 @@
-Thanks for helping make GitHub safe for everyone.
+# Security Policy
 
-# Security
+## Supported Versions
 
-GitHub takes the security of our software products and services seriously, including all of the open source code repositories managed through our GitHub organizations, such as [GitHub](https://github.com/GitHub).
+Only the latest release on `main` receives security fixes. We do not backport fixes to older versions.
 
-Even though [open source repositories are outside of the scope of our bug bounty program](https://bounty.github.com/index.html#scope) and therefore not eligible for bounty rewards, we will ensure that your finding gets passed along to the appropriate maintainers for remediation. 
+| Version | Supported          |
+| ------- | ------------------ |
+| main    | :white_check_mark: |
+| other   | :x:                |
 
-## Reporting Security Issues
-
-If you believe you have found a security vulnerability in any GitHub-owned repository, please report it to us through coordinated disclosure.
+## Reporting a Vulnerability
 
 **Please do not report security vulnerabilities through public GitHub issues, discussions, or pull requests.**
 
-Instead, please send an email to opensource-security[@]github.com.
+Instead, use [private vulnerability reporting](https://github.com/DevelApp-ai/tablet-math-practice/security/advisories/new) for this repository, so the report reaches the maintainers directly and disclosure can be coordinated.
 
-Please include as much of the information listed below as you can to help us better understand and resolve the issue:
+Please include as much of the following as you can:
 
-  * The type of issue (e.g., buffer overflow, SQL injection, or cross-site scripting)
-  * Full paths of source file(s) related to the manifestation of the issue
-  * The location of the affected source code (tag/branch/commit or direct URL)
-  * Any special configuration required to reproduce the issue
-  * Step-by-step instructions to reproduce the issue
-  * Proof-of-concept or exploit code (if possible)
-  * Impact of the issue, including how an attacker might exploit the issue
+- The type of issue (e.g. cross-site scripting, injection, unsafe dependency)
+- The affected file(s) and their location (branch/commit or URL)
+- Any special configuration required to reproduce the issue
+- Step-by-step instructions or a proof of concept
+- The impact, including how an attacker might exploit it
 
-This information will help us triage your report more quickly.
+We aim to acknowledge reports within a few days and will keep you informed while a fix is prepared.
 
-## Policy
+## Project-Specific Considerations
 
-See [GitHub's Safe Harbor Policy](https://docs.github.com/en/site-policy/security-policies/github-bug-bounty-program-legal-safe-harbor#1-safe-harbor-terms)
+This is a **client-side only** learning app for children:
+
+- There is no backend. Practice data (profiles, streaks, badges, stats) is stored in the browser's `localStorage` and never leaves the device.
+- No personal data is collected; the app contains no analytics, ads, or third-party tracking.
+- The app is deployed as a static site on GitHub Pages. Reports about the GitHub Pages platform itself are out of scope.
+- Vulnerabilities in third-party dependencies are in scope and will be assessed for a pinned upgrade or mitigation.
