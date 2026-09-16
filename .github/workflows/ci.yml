@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -31,6 +32,31 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Lint and type-check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          npm run lint > lint.log 2>&1
+          LINT_RC=$?
+          npm run typecheck > typecheck.log 2>&1
+          TSC_RC=$?
+          set -e
+          {
+            echo "### Lint output (exit $LINT_RC)"
+            echo '```'
+            head -c 20000 lint.log
+            echo '```'
+            echo "### Type-check output (exit $TSC_RC)"
+            echo '```'
+            head -c 20000 typecheck.log
+            echo '```'
+          } > comment.md
+          if [ "$LINT_RC" -ne 0 ] || [ "$TSC_RC" -ne 0 ]; then
+            gh pr comment "${{ github.event.pull_request.number }}" --body-file comment.md || true
+            exit 1
+          fi
 
       - name: Build
         run: npm run build
