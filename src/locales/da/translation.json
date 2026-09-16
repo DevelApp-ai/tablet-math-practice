@@ -2,7 +2,8 @@
   "app": {
     "title": "Matematik Øvelse",
     "subtitle": "Forbedre dine matematikfærdigheder med interaktive øvelser",
-    "tagline": "Øvelse gør mester!"
+    "tagline": "Øvelse gør mester!",
+    "header": "Matematik Øvelse"
   },
   "nav": {
     "home": "Hjem",
@@ -18,7 +19,10 @@
     "advanced": "Avanceret",
     "expert": "Ekspert",
     "select": "Vælg Sværhedsgrad",
-    "description": "Vælg dit færdighedsniveau"
+    "description": "Vælg dit færdighedsniveau",
+    "chooseLevel": "Vælg Dit Niveau",
+    "selectHint": "Vælg en sværhedsgrad for at begynde at øve",
+    "tapToStart": "Tryk for at Starte"
   },
   "operations": {
     "addition": "Addition",
@@ -73,7 +77,19 @@
     "overallAccuracy": "Samlet Nøjagtighed",
     "sessionsCompleted": "Afsluttede Sessions",
     "bestSession": "Bedste Session",
-    "progress": "Fremskridt"
+    "progress": "Fremskridt",
+    "howYouDid": "Sådan klarede du det:",
+    "strokeReplay": "Genafspilning af håndskrift (underviser)",
+    "problemN": "Opgave {{n}}",
+    "practiceAgain": "Øv Igen",
+    "changeSettings": "Skift Indstillinger",
+    "streakShort": "Streak",
+    "accuracyOverTime": "Nøjagtighed Over Tid",
+    "accuracyPercent": "Nøjagtighed %",
+    "overallPerformance": "Samlet Ydeevne",
+    "totalSessions": "Totale Sessioner",
+    "avgAccuracy": "Gns. Nøjagtighed",
+    "sessionN": "Session {{n}}"
   },
   "worksheet": {
     "title": "Matematik Ark",
@@ -85,7 +101,15 @@
     "generate": "Generer Nyt Ark",
     "problemCount": "Antal opgaver",
     "difficulty": "Sværhedsgrad",
-    "operation": "Operation Type"
+    "operation": "Operation Type",
+    "preview": "Forhåndsvisning af Ark",
+    "problemsCount": "{{count}} Opgaver",
+    "generateNew": "Generer Nyt",
+    "printAction": "Udskriv",
+    "titleFull": "Matematik Øvelsesark",
+    "nameField": "Navn: ___________________________",
+    "dateField": "Dato: ___________________________",
+    "answerKeyNote": "Kun til brug for lærer/forælder"
   },
   "settings": {
     "title": "Indstillinger",
@@ -141,7 +165,8 @@
     "of": "af",
     "to": "til",
     "for": "for",
-    "with": "med"
+    "with": "med",
+    "correctWellDone": "Korrekt! Godt klaret!"
   },
   "actions": {
     "continue": "Forsæt",
@@ -165,5 +190,24 @@
     "minutes": "{{count}} minut{{plural}}",
     "hours": "{{count}} time{{plural}}",
     "format": "{{hours}}t {{minutes}}m {{seconds}}s"
+  },
+  "difficultyDesc": {
+    "beginner": "Endcifrede opgaver",
+    "intermediate": "Tocifrede udfordringer",
+    "advanced": "Flercifrede tal og decimaler"
+  },
+  "landing": {
+    "practiceSettings": "Øvelsesindstillinger",
+    "sessionMode": "Sessionstilstand",
+    "mastery": "Mestring",
+    "fluency": "Hurtighed (tidssat sprint)",
+    "modeDescription": "Mestring: uden tidstryk, med hints og visuelt materiale. Hurtighed: tidssat sprint uden hints — hastighed giver bonus-XP.",
+    "verticalLayout": "Lodret opstilling (kolonneregning med over- og underføring)",
+    "manipulatives": "Vis visuelt hjælpemateriale (tierammer, tallinjer, grupper)",
+    "wordProblems": "Tekstopgaver (historieopgaver med oplæsning)",
+    "scratchpad": "Vis kladdeblok (til mellemregninger)",
+    "palmRejection": "Palmerejection (ignorér berøring ved penbrug)",
+    "mistakeVault": "Fejlvault",
+    "viewPreviousSessions": "Se Tidligere Sessioner"
   }
 }

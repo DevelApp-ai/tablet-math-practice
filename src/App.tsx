@@ -30,9 +30,11 @@ import { Separator } from '@/components/ui/separator'
 import { CanvasGridSelector } from '@/components/canvas/CanvasGridSelector'
 import { StrokeReplayViewer } from '@/components/canvas/StrokeReplayViewer'
 import { MistakeVaultModal } from '@/components/workflow/MistakeVaultModal'
+import { LanguageSelector } from '@/components/LanguageSelector'
 import { StrokeSession } from '@/lib/ink/strokeStore'
 import { ArrowLeft, GraduationCap, ChartBar, Trophy, Flame, Vault, Target, Gauge } from '@phosphor-icons/react'
 import { AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { toast, Toaster } from 'sonner'
 import {
   initializeUserProfile,
@@ -50,6 +52,7 @@ import {
 } from '@/lib/scoring'
 
 function App() {
+  const { t } = useTranslation()
   // Load session history and current session from localStorage
   const [sessionHistory, setSessionHistory] = useState<PracticeSession[]>(() => {
     try {
@@ -466,13 +469,15 @@ function App() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <GraduationCap size={32} weight="duotone" className="text-primary" />
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Math Practice</h1>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('app.header')}</h1>
             </div>
             
-            {currentSession && !showStats && (
-              <div className="flex items-center gap-4">
-                <UIBadge variant="secondary" className="text-sm px-3 py-1">
-                  {difficulty?.charAt(0).toUpperCase()}{difficulty?.slice(1)}
+            <div className="flex items-center gap-4">
+              <LanguageSelector />
+              {currentSession && !showStats && (
+                <div className="flex items-center gap-4">
+                  <UIBadge variant="secondary" className="text-sm px-3 py-1">
+                  {difficulty ? t(`difficulty.${difficulty}`) : ''}
                 </UIBadge>
                 <Button
                   variant="ghost"
@@ -481,14 +486,15 @@ function App() {
                   className="flex items-center gap-1"
                 >
                   <Trophy size={18} />
-                  Gamification
+                  {t('gamification.title')}
                 </Button>
-                <Button variant="ghost" size="sm" onClick={handleRestart}>
-                  <ArrowLeft size={20} />
-                  Exit
-                </Button>
-              </div>
-            )}
+                  <Button variant="ghost" size="sm" onClick={handleRestart}>
+                    <ArrowLeft size={20} />
+                    {t('session.exit')}
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -499,7 +505,7 @@ function App() {
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                Gamification
+                {t('gamification.title')}
               </h2>
               <Button
                 variant="ghost"
@@ -538,11 +544,11 @@ function App() {
             <Separator className="my-8" />
             
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-center">Practice Settings</h3>
+              <h3 className="text-lg font-semibold text-center">{t('landing.practiceSettings')}</h3>
               <OperationSelect selected={operationType} onSelect={setOperationType} />
               
               <div className="flex flex-col items-center gap-2 pt-4">
-                <Label className="text-base font-medium">Session Mode</Label>
+                <Label className="text-base font-medium">{t('landing.sessionMode')}</Label>
                 <div className="flex items-center gap-2">
                   <Button
                     variant={sessionMode === 'mastery' ? 'default' : 'outline'}
@@ -551,7 +557,7 @@ function App() {
                     className="gap-1"
                   >
                     <Target size={16} />
-                    Mastery
+                    {t('landing.mastery')}
                   </Button>
                   <Button
                     variant={sessionMode === 'fluency' ? 'default' : 'outline'}
@@ -560,11 +566,11 @@ function App() {
                     className="gap-1"
                   >
                     <Gauge size={16} />
-                    Fluency (timed sprint)
+                    {t('landing.fluency')}
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground text-center max-w-md">
-                  Mastery: untimed with hints and manipulatives. Fluency: timed sprint, no hints — speed earns bonus XP.
+                  {t('landing.modeDescription')}
                 </p>
               </div>
 
@@ -577,7 +583,7 @@ function App() {
                   }
                 />
                 <Label htmlFor="vertical-mode" className="text-base cursor-pointer">
-                  Vertical Layout (column math with carry/borrow)
+                  {t('landing.verticalLayout')}
                 </Label>
               </div>
 
@@ -590,7 +596,7 @@ function App() {
                   }
                 />
                 <Label htmlFor="manipulatives-mode" className="text-base cursor-pointer">
-                  Show Visual Manipulatives (ten-frames, number lines, arrays)
+                  {t('landing.manipulatives')}
                 </Label>
               </div>
 
@@ -603,7 +609,7 @@ function App() {
                   }
                 />
                 <Label htmlFor="word-problems-mode" className="text-base cursor-pointer">
-                  Word Problems (story problems with read-aloud)
+                  {t('landing.wordProblems')}
                 </Label>
               </div>
 
@@ -616,7 +622,7 @@ function App() {
                   }
                 />
                 <Label htmlFor="scratchpad-mode" className="text-base cursor-pointer">
-                  Show Scratchpad (rough-work zone)
+                  {t('landing.scratchpad')}
                 </Label>
               </div>
 
@@ -629,7 +635,7 @@ function App() {
                   }
                 />
                 <Label htmlFor="palm-rejection" className="text-base cursor-pointer">
-                  Palm Rejection (ignore touch while using stylus)
+                  {t('landing.palmRejection')}
                 </Label>
               </div>
 
@@ -651,7 +657,7 @@ function App() {
                 className="gap-2"
               >
                 <Vault size={20} />
-                Mistake Vault
+                {t('landing.mistakeVault')}
                 {mistakeVault.length > 0 && (
                   <UIBadge variant="destructive" className="ml-1">
                     {mistakeVault.length}
@@ -670,7 +676,7 @@ function App() {
                     className="gap-2"
                   >
                     <ChartBar size={20} />
-                    View Previous Sessions
+                    {t('landing.viewPreviousSessions')}
                   </Button>
                 </div>
               </>
@@ -679,15 +685,15 @@ function App() {
         ) : showStats ? (
           <div className="max-w-4xl mx-auto space-y-8">
             <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold">Session Complete! \ud83c\udf89</h2>
-              <p className="text-muted-foreground">Here's how you did:</p>
+              <h2 className="text-3xl font-bold">{t('feedback.sessionComplete')} \ud83c\udf89</h2>
+              <p className="text-muted-foreground">{t('stats.howYouDid')}</p>
             </div>
             
             {currentSession && <StatsDashboard stats={currentSession.stats} history={sessionHistory} />}
 
             {currentSession && Object.keys(strokeSessions).length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-center">Stroke Replay (Educator)</h3>
+                <h3 className="text-lg font-semibold text-center">{t('stats.strokeReplay')}</h3>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {currentSession.problems
                     .filter((p) => strokeSessions[p.id])
@@ -698,7 +704,7 @@ function App() {
                         size="sm"
                         onClick={() => setReplayProblemId(p.id)}
                       >
-                        Problem {idx + 1}
+                        {t('stats.problemN', { n: idx + 1 })}
                       </Button>
                     ))}
                 </div>
@@ -712,10 +718,10 @@ function App() {
 
             <div className="flex gap-4 justify-center">
               <Button onClick={handleNewSession} size="lg" className="gap-2">
-                Practice Again
+                {t('stats.practiceAgain')}
               </Button>
               <Button onClick={handleRestart} variant="outline" size="lg">
-                Change Settings
+                {t('stats.changeSettings')}
               </Button>
             </div>
           </div>
@@ -763,8 +769,8 @@ function App() {
       
       {/* Screen reader announcements */}
       <div aria-live="polite" className="sr-only">
-        {showSuccess && 'Correct! Well done!'}
-        {currentSession && currentProblem && `Problem ${currentSession.currentProblemIndex + 1} of ${currentSession.problems.length}`}
+        {showSuccess && t('common.correctWellDone')}
+        {currentSession && currentProblem && t('session.problem', { current: currentSession.currentProblemIndex + 1, total: currentSession.problems.length })}
       </div>
 
       <MistakeVaultModal

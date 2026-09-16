@@ -2,7 +2,8 @@
   "app": {
     "title": "Mathe Übung",
     "subtitle": "Verbessern Sie Ihre Mathematikfähigkeiten mit interaktiven Übungen",
-    "tagline": "Übung macht den Meister!"
+    "tagline": "Übung macht den Meister!",
+    "header": "Mathe Übung"
   },
   "nav": {
     "home": "Startseite",
@@ -18,7 +19,10 @@
     "advanced": "Fortgeschritten",
     "expert": "Experte",
     "select": "Schwierigkeitsgrad auswählen",
-    "description": "Wählen Sie Ihr Fähigkeitsniveau"
+    "description": "Wählen Sie Ihr Fähigkeitsniveau",
+    "chooseLevel": "Wähle Dein Level",
+    "selectHint": "Wähle eine Schwierigkeitsstufe, um zu üben",
+    "tapToStart": "Tippen zum Starten"
   },
   "operations": {
     "addition": "Addition",
@@ -73,7 +77,19 @@
     "overallAccuracy": "Gesamtgenauigkeit",
     "sessionsCompleted": "Abgeschlossene Sessions",
     "bestSession": "Beste Session",
-    "progress": "Fortschritt"
+    "progress": "Fortschritt",
+    "howYouDid": "So hast du abgeschnitten:",
+    "strokeReplay": "Strichwiedergabe (Pädagoge)",
+    "problemN": "Aufgabe {{n}}",
+    "practiceAgain": "Nochmal Üben",
+    "changeSettings": "Einstellungen Ändern",
+    "streakShort": "Streak",
+    "accuracyOverTime": "Genauigkeit im Zeitverlauf",
+    "accuracyPercent": "Genauigkeit %",
+    "overallPerformance": "Gesamtleistung",
+    "totalSessions": "Sitzungen Insgesamt",
+    "avgAccuracy": "Ø. Genauigkeit",
+    "sessionN": "Sitzung {{n}}"
   },
   "worksheet": {
     "title": "Mathe Arbeitsblatt",
@@ -85,7 +101,15 @@
     "generate": "Neues Arbeitsblatt generieren",
     "problemCount": "Anzahl der Aufgaben",
     "difficulty": "Schwierigkeitsgrad",
-    "operation": "Operationstyp"
+    "operation": "Operationstyp",
+    "preview": "Arbeitsblatt-Vorschau",
+    "problemsCount": "{{count}} Aufgaben",
+    "generateNew": "Neu Generieren",
+    "printAction": "Drucken",
+    "titleFull": "Mathe Übungsblatt",
+    "nameField": "Name: ___________________________",
+    "dateField": "Datum: ___________________________",
+    "answerKeyNote": "Nur für Lehrer/Eltern"
   },
   "settings": {
     "title": "Einstellungen",
@@ -141,7 +165,8 @@
     "of": "von",
     "to": "zu",
     "for": "für",
-    "with": "mit"
+    "with": "mit",
+    "correctWellDone": "Richtig! Gut gemacht!"
   },
   "actions": {
     "continue": "Weiter",
@@ -165,5 +190,24 @@
     "minutes": "{{count}} Minute{{plural}}",
     "hours": "{{count}} Stunde{{plural}}",
     "format": "{{hours}}h {{minutes}}m {{seconds}}s"
+  },
+  "difficultyDesc": {
+    "beginner": "Einstellige Aufgaben",
+    "intermediate": "Zweistellige Herausforderungen",
+    "advanced": "Mehrstellig & Dezimalzahlen"
+  },
+  "landing": {
+    "practiceSettings": "Übungseinstellungen",
+    "sessionMode": "Sitzungsmodus",
+    "mastery": "Meisterschaft",
+    "fluency": "Schnelligkeit (Zeitsprint)",
+    "modeDescription": "Meisterschaft: ohne Zeitdruck, mit Hinweisen und Anschauungsmaterial. Schnelligkeit: Zeitsprint ohne Hinweise — Geschwindigkeit bringt Bonus-XP.",
+    "verticalLayout": "Vertikale Anordnung (Rechnen in Spalten mit Übertrag)",
+    "manipulatives": "Visuelles Anschauungsmaterial anzeigen (Zehnerfelder, Zahlengeraden, Anordnungen)",
+    "wordProblems": "Textaufgaben (Geschichtenaufgaben mit Vorlesen)",
+    "scratchpad": "Schmierpapier anzeigen (Bereich für Nebenrechnungen)",
+    "palmRejection": "Handballenerkennung (Berührungen bei Stiftbenutzung ignorieren)",
+    "mistakeVault": "Fehlerarchiv",
+    "viewPreviousSessions": "Frühere Sitzungen ansehen"
   }
 }

@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronDown } from '@phosphor-icons/react'
+import { CaretDown } from '@phosphor-icons/react'
 import { SUPPORTED_LANGUAGES } from '@/lib/i18n'
 
 export const LanguageSelector = () => {
@@ -52,7 +52,7 @@ export const LanguageSelector = () => {
       >
         <span>{currentLanguage.flag}</span>
         <span className="hidden sm:inline">{currentLanguage.nativeName}</span>
-        <ChevronDown
+        <CaretDown
           size={16}
           className="text-gray-500 hidden sm:block"
         />
