@@ -1,11 +1,14 @@
 import { describe, it, expect } from 'vitest'
-import { Problem, PracticeSession, SessionStats, XP_REWARDS } from '../types'
+import { Problem, PracticeCounters, PracticeSession, SessionStats, XP_REWARDS } from '../types'
 import {
   calculateXPForProblem,
   calculateSessionXP,
   calculatePerfectSessionBonus,
   addXPToProfile,
   initializeUserProfile,
+  checkBadges,
+  addBadgesToProfile,
+  updatePracticeCounters,
 } from '../scoring'
 
 // Helper to create a mock problem
@@ -384,5 +387,105 @@ describe('XP Accounting (no double-count)', () => {
     expect(xp).toBe(XP_REWARDS.correctAnswer + XP_REWARDS.speedBonus)
     const profile = addXPToProfile(initializeUserProfile(), xp)
     expect(profile.xp).toBe(xp)
+  })
+})
+
+describe('Cumulative practice counters (issue #66)', () => {
+  it('accumulates totals, per-operation counts and streaks across sessions', () => {
+    let profile = initializeUserProfile()
+    for (let session = 0; session < 4; session++) {
+      profile = updatePracticeCounters(profile, [
+        createProblem(1, 1, 'addition', 2, 2, true),
+        createProblem(2, 2, 'addition', 4, 4, true),
+        createProblem(3, 3, 'addition', 6, 5, false),
+      ])
+    }
+    expect(profile.counters.totalProblemsSolved).toBe(12)
+    expect(profile.counters.correctByOperation.addition).toBe(8)
+    expect(profile.counters.bestAnswerStreak).toBe(2)
+    expect(profile.counters.currentAnswerStreak).toBe(0)
+  })
+
+  it('carries the answer streak across sessions', () => {
+    let profile = initializeUserProfile()
+    profile = updatePracticeCounters(profile, [
+      createProblem(1, 1, 'addition', 2, 2, true),
+      createProblem(2, 2, 'addition', 4, 4, true),
+    ])
+    profile = updatePracticeCounters(profile, [
+      createProblem(3, 3, 'addition', 6, 6, true),
+    ])
+    expect(profile.counters.currentAnswerStreak).toBe(3)
+    expect(profile.counters.bestAnswerStreak).toBe(3)
+  })
+
+  it('skips problems that were never answered', () => {
+    const profile = updatePracticeCounters(initializeUserProfile(), [
+      createProblem(1, 1, 'addition', 2, 2, true),
+      createProblem(5, 5, 'addition', 10),
+    ])
+    expect(profile.counters.totalProblemsSolved).toBe(1)
+    expect(profile.counters.correctByOperation.addition).toBe(1)
+  })
+
+  it('earns addition_master from cumulative counts across sessions', () => {
+    let profile = initializeUserProfile()
+    const problems = Array.from({ length: 25 }, (_, i) =>
+      createProblem(i, 1, 'addition', i + 1, i + 1, true)
+    )
+    const stats = createSession(problems).stats
+    for (let session = 0; session < 4; session++) {
+      profile = updatePracticeCounters(profile, problems)
+      const newBadges = checkBadges(stats, profile, problems)
+      profile = addBadgesToProfile(profile, newBadges)
+      const earnedMaster = newBadges.some((b) => b.id === 'addition_master')
+      expect(earnedMaster).toBe(session === 3)
+    }
+  })
+
+  it('earns marathon from the cumulative problem total across sessions', () => {
+    let profile = initializeUserProfile()
+    const problems = Array.from({ length: 30 }, (_, i) =>
+      createProblem(i, 1, 'addition', i + 1, i + 1, true)
+    )
+    const stats = createSession(problems).stats
+    for (let session = 0; session < 4; session++) {
+      profile = updatePracticeCounters(profile, problems)
+      profile = addBadgesToProfile(profile, checkBadges(stats, profile, problems))
+    }
+    expect(profile.badges.find((b) => b.id === 'marathon')?.earned).toBe(true)
+  })
+
+  it('earns perfect_50 from a streak carried across two sessions', () => {
+    let profile = initializeUserProfile()
+    const problems = Array.from({ length: 30 }, (_, i) =>
+      createProblem(i, 1, 'addition', i + 1, i + 1, true)
+    )
+    const stats = { ...createSession(problems).stats, longestStreak: 30 }
+
+    profile = updatePracticeCounters(profile, problems)
+    expect(
+      checkBadges(stats, profile, problems).some((b) => b.id === 'perfect_50')
+    ).toBe(false)
+    profile = addBadgesToProfile(profile, checkBadges(stats, profile, problems))
+
+    profile = updatePracticeCounters(profile, problems)
+    expect(
+      checkBadges(stats, profile, problems).some((b) => b.id === 'perfect_50')
+    ).toBe(true)
+  })
+
+  it('falls back to session counts for legacy profiles without counters', () => {
+    const legacyProfile = initializeUserProfile()
+    delete (legacyProfile as { counters?: PracticeCounters }).counters
+    const problems = Array.from({ length: 100 }, (_, i) =>
+      createProblem(i, 1, 'addition', i + 1, i + 1, true)
+    )
+    const stats = createSession(problems).stats
+    expect(
+      checkBadges(stats, legacyProfile, problems).some(
+        (b) => b.id === 'addition_master'
+      )
+    ).toBe(true)
   })
 })

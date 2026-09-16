@@ -75,6 +75,19 @@ export interface DailyStreak {
   returnBonusClaimed: boolean
 }
 
+// Cumulative practice counters persisted across sessions (issue #66:
+// badges such as operation mastery - 100 correct per operation - and
+// marathon - 100 problems - are unreachable when only the current
+// session's problems (~10-30) are counted).
+export interface PracticeCounters {
+  totalProblemsSolved: number
+  correctByOperation: Record<Exclude<OperationType, 'mixed'>, number>
+  // Consecutive-correct streak carried across sessions (reset by any
+  // wrong answer, in whichever session it happens).
+  currentAnswerStreak: number
+  bestAnswerStreak: number
+}
+
 export interface UserSettings {
   soundEnabled: boolean
   animationsEnabled: boolean
@@ -95,6 +108,7 @@ export interface UserProfile {
   xpToNextLevel: number
   badges: Badge[]
   dailyStreak: DailyStreak
+  counters: PracticeCounters
   settings: UserSettings
 }
 
