@@ -9,6 +9,7 @@ import {
   Badge,
   BadgeId,
   DailyStreak,
+  PracticeCounters,
   UserProfile,
   SessionStats,
   Problem,
@@ -226,7 +227,7 @@ const BADGE_DEFINITIONS: Record<BadgeId, Omit<Badge, 'earned' | 'earnedAt'>> = {
   marathon: {
     id: 'marathon',
     name: 'Marathon',
-    description: 'Solve 100 problems in a single session',
+    description: 'Solve 100 problems in total (across sessions)',
     icon: '🏃',
   },
   weekend_warrior: {
@@ -308,22 +309,28 @@ export const checkBadges = (
     })
   }
 
-  // 2. Perfect streaks
-  if ((sessionStats.longestStreak ?? 0) >= 10 && !isAlreadyEarned('perfect_10')) {
+  // 2. Perfect streaks (best consecutive-correct streak across ALL
+  // sessions, tracked in profile.counters; the session-only streak is
+  // kept as a fallback for callers that have not updated counters)
+  const bestStreak = Math.max(
+    profile.counters?.bestAnswerStreak ?? 0,
+    sessionStats.longestStreak ?? 0
+  )
+  if (bestStreak >= 10 && !isAlreadyEarned('perfect_10')) {
     earnedBadges.push({
       ...BADGE_DEFINITIONS.perfect_10,
       earned: true,
       earnedAt: now,
     })
   }
-  if ((sessionStats.longestStreak ?? 0) >= 25 && !isAlreadyEarned('perfect_25')) {
+  if (bestStreak >= 25 && !isAlreadyEarned('perfect_25')) {
     earnedBadges.push({
       ...BADGE_DEFINITIONS.perfect_25,
       earned: true,
       earnedAt: now,
     })
   }
-  if ((sessionStats.longestStreak ?? 0) >= 50 && !isAlreadyEarned('perfect_50')) {
+  if (bestStreak >= 50 && !isAlreadyEarned('perfect_50')) {
     earnedBadges.push({
       ...BADGE_DEFINITIONS.perfect_50,
       earned: true,
@@ -343,8 +350,12 @@ export const checkBadges = (
     })
   }
 
-  // 4. Marathon - 100 problems in session
-  if (sessionStats.totalProblems >= 100 && !isAlreadyEarned('marathon')) {
+  // 4. Marathon - 100 problems solved in total (across sessions)
+  const totalSolved = Math.max(
+    profile.counters?.totalProblemsSolved ?? 0,
+    sessionStats.totalProblems
+  )
+  if (totalSolved >= 100 && !isAlreadyEarned('marathon')) {
     earnedBadges.push({
       ...BADGE_DEFINITIONS.marathon,
       earned: true,
@@ -368,36 +379,46 @@ export const checkBadges = (
     })
   }
 
-  // 6. Operation mastery (count correct answers per operation in all problems)
-  const operationCounts: Record<string, number> = {}
+  // 6. Operation mastery (cumulative correct answers per operation,
+  // persisted in profile.counters across sessions; falls back to the
+  // current session's problems for profiles without counters)
+  const operationCounts: Record<string, number> = {
+    ...(profile.counters?.correctByOperation ?? {}),
+  }
+  const sessionOperationCounts: Record<string, number> = {}
   problems.forEach((p) => {
     if (p.isCorrect && p.operation) {
-      operationCounts[p.operation] = (operationCounts[p.operation] || 0) + 1
+      sessionOperationCounts[p.operation] = (sessionOperationCounts[p.operation] || 0) + 1
     }
   })
+  // Counters may or may not already include this session's problems
+  // (App.tsx updates them first); the per-operation max is exact in the
+  // include case and never over-counts in the exclude case.
+  const countFor = (operation: string): number =>
+    Math.max(operationCounts[operation] ?? 0, sessionOperationCounts[operation] ?? 0)
 
-  if (operationCounts['addition'] >= 100 && !isAlreadyEarned('addition_master')) {
+  if (countFor('addition') >= 100 && !isAlreadyEarned('addition_master')) {
     earnedBadges.push({
       ...BADGE_DEFINITIONS.addition_master,
       earned: true,
       earnedAt: now,
     })
   }
-  if (operationCounts['subtraction'] >= 100 && !isAlreadyEarned('subtraction_master')) {
+  if (countFor('subtraction') >= 100 && !isAlreadyEarned('subtraction_master')) {
     earnedBadges.push({
       ...BADGE_DEFINITIONS.subtraction_master,
       earned: true,
       earnedAt: now,
     })
   }
-  if (operationCounts['multiplication'] >= 100 && !isAlreadyEarned('multiplication_master')) {
+  if (countFor('multiplication') >= 100 && !isAlreadyEarned('multiplication_master')) {
     earnedBadges.push({
       ...BADGE_DEFINITIONS.multiplication_master,
       earned: true,
       earnedAt: now,
     })
   }
-  if (operationCounts['division'] >= 100 && !isAlreadyEarned('division_master')) {
+  if (countFor('division') >= 100 && !isAlreadyEarned('division_master')) {
     earnedBadges.push({
       ...BADGE_DEFINITIONS.division_master,
       earned: true,
@@ -424,6 +445,74 @@ export const addBadgesToProfile = (profile: UserProfile, newBadges: Badge[]): Us
   return {
     ...profile,
     badges: Array.from(existingBadges.values()),
+  }
+}
+
+// ============================================================================
+// Cumulative Practice Counters (issue #66)
+// ============================================================================
+
+/**
+ * Initialize zeroed practice counters
+ * @returns New PracticeCounters object
+ */
+export const initializePracticeCounters = (): PracticeCounters => ({
+  totalProblemsSolved: 0,
+  correctByOperation: {
+    addition: 0,
+    subtraction: 0,
+    multiplication: 0,
+    division: 0,
+  },
+  currentAnswerStreak: 0,
+  bestAnswerStreak: 0,
+})
+
+/**
+ * Fold a completed session's problems into the profile's cumulative
+ * practice counters so progress badges accumulate across sessions:
+ * - totalProblemsSolved counts answered problems only
+ * - correctByOperation accumulates correct answers per operation
+ * - currentAnswerStreak carries the consecutive-correct streak across
+ *   sessions (reset by any wrong answer); bestAnswerStreak tracks the max
+ * @param profile - Current user profile
+ * @param problems - Problems from the session that just completed
+ * @returns Updated user profile
+ */
+export const updatePracticeCounters = (
+  profile: UserProfile,
+  problems: Problem[]
+): UserProfile => {
+  const counters = profile.counters ?? initializePracticeCounters()
+  const correctByOperation = { ...counters.correctByOperation }
+  let totalProblemsSolved = counters.totalProblemsSolved
+  let currentAnswerStreak = counters.currentAnswerStreak
+  let bestAnswerStreak = counters.bestAnswerStreak
+
+  problems.forEach((p) => {
+    // Skip problems that were never answered (e.g. abandoned session)
+    if (p.userAnswer === undefined && p.isCorrect === undefined) return
+
+    totalProblemsSolved += 1
+    if (p.isCorrect === true) {
+      currentAnswerStreak += 1
+      bestAnswerStreak = Math.max(bestAnswerStreak, currentAnswerStreak)
+      if (p.operation) {
+        correctByOperation[p.operation] = (correctByOperation[p.operation] ?? 0) + 1
+      }
+    } else {
+      currentAnswerStreak = 0
+    }
+  })
+
+  return {
+    ...profile,
+    counters: {
+      totalProblemsSolved,
+      correctByOperation,
+      currentAnswerStreak,
+      bestAnswerStreak,
+    },
   }
 }
 
@@ -493,6 +582,7 @@ export const initializeUserProfile = (): UserProfile => ({
     lastActiveDate: '',
     returnBonusClaimed: false,
   },
+  counters: initializePracticeCounters(),
   settings: {
     soundEnabled: true,
     animationsEnabled: true,
@@ -527,6 +617,19 @@ export const loadUserProfile = (): UserProfile => {
           lastActiveDate: '',
           returnBonusClaimed: false,
         },
+        counters: parsed.counters
+          ? {
+              totalProblemsSolved: parsed.counters.totalProblemsSolved ?? 0,
+              correctByOperation: {
+                addition: parsed.counters.correctByOperation?.addition ?? 0,
+                subtraction: parsed.counters.correctByOperation?.subtraction ?? 0,
+                multiplication: parsed.counters.correctByOperation?.multiplication ?? 0,
+                division: parsed.counters.correctByOperation?.division ?? 0,
+              },
+              currentAnswerStreak: parsed.counters.currentAnswerStreak ?? 0,
+              bestAnswerStreak: parsed.counters.bestAnswerStreak ?? 0,
+            }
+          : initializePracticeCounters(),
         settings: parsed.settings
           ? {
               soundEnabled: parsed.settings.soundEnabled ?? true,

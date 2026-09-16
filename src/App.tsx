@@ -47,6 +47,7 @@ import {
   claimReturnBonus,
   checkBadges,
   addBadgesToProfile,
+  updatePracticeCounters,
   calculatePerfectSessionBonus,
 } from '@/lib/scoring'
 
@@ -330,24 +331,31 @@ function App() {
         currentProblemIndex: session.currentProblemIndex + 1
       })
     } else {
-      // Session complete - check for badges and add XP
+      // Session complete - update cumulative counters, award any perfect
+      // bonus, then check badges. A single updated profile is threaded
+      // through the whole chain: previously the perfect-bonus XP update
+      // and the badge update both started from the same stale userProfile,
+      // so the perfect-bonus XP was silently lost whenever badges were
+      // earned in the same session.
+      let updatedProfile = updatePracticeCounters(userProfile, session.problems)
+
       if (session.stats.accuracy === 100) {
         const perfectBonus = calculatePerfectSessionBonus(session.stats)
         if (perfectBonus > 0) {
-          const updatedProfile = addXPToProfile(userProfile, perfectBonus)
-          setUserProfile(updatedProfile)
+          updatedProfile = addXPToProfile(updatedProfile, perfectBonus)
           toast.success(`+${perfectBonus} XP Perfect Session Bonus!`, {
             description: 'All answers correct!',
           })
         }
       }
-      
-      // Check for newly earned badges
-      const newBadges = checkBadges(session.stats, userProfile, session.problems)
+
+      // Check for newly earned badges. The counters updated above already
+      // include this session's problems, so mastery / marathon / streak
+      // badges accumulate across sessions (issue #66).
+      const newBadges = checkBadges(session.stats, updatedProfile, session.problems)
       if (newBadges.length > 0) {
-        const profileWithBadges = addBadgesToProfile(userProfile, newBadges)
-        setUserProfile(profileWithBadges)
-        
+        updatedProfile = addBadgesToProfile(updatedProfile, newBadges)
+
         newBadges.forEach((badge) => {
           toast.success(`Badge Earned: ${badge.name}!`, {
             description: badge.description,
@@ -355,6 +363,8 @@ function App() {
           })
         })
       }
+
+      setUserProfile(updatedProfile)
       
       // Per-problem XP is already awarded in handleSubmitAnswer; do not add
       // calculateSessionXP again here (it re-sums the same per-problem XP and
