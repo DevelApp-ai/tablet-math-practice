@@ -84,7 +84,7 @@ function WorksheetContent({ problems, difficulty, operation }: {
   difficulty: string
   operation: string 
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <div className="space-y-6">
       <div className="text-center border-b-2 pb-4">
@@ -103,9 +103,9 @@ function WorksheetContent({ problems, difficulty, operation }: {
           <div key={problem.id} className="flex items-center gap-3 md:gap-4 border-b pb-3 problem-row print:gap-1 print:pb-1">
             <span className="font-medium text-muted-foreground w-8 print:text-black print:w-6">{index + 1}.</span>
             <div className="flex items-center gap-2 md:gap-3 text-xl md:text-2xl print:text-base">
-              <span className="print:text-black">{formatNumber(problem.operand1)}</span>
+              <span className="print:text-black">{formatNumber(problem.operand1, i18n.language)}</span>
               <span className="font-bold text-primary print:text-black">{getOperationSymbol(problem.operation)}</span>
-              <span className="print:text-black">{formatNumber(problem.operand2)}</span>
+              <span className="print:text-black">{formatNumber(problem.operand2, i18n.language)}</span>
               <span className="print:text-black">=</span>
               <div className="border-b-2 border-foreground/20 w-24 md:w-32 h-8 answer-line print:border-b-2 print:border-black print:w-20 print:h-6"></div>
             </div>
@@ -117,7 +117,7 @@ function WorksheetContent({ problems, difficulty, operation }: {
 }
 
 function AnswerKey({ problems }: { problems: Problem[] }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <div className="space-y-6">
       <div className="text-center border-b-2 pb-4">
@@ -129,7 +129,7 @@ function AnswerKey({ problems }: { problems: Problem[] }) {
         {problems.map((problem, index) => (
           <div key={problem.id} className="text-center print:text-xs">
             <span className="text-sm text-muted-foreground print:text-black">{index + 1}.</span>
-            <span className="ml-2 font-semibold print:text-black">{formatNumber(problem.correctAnswer)}</span>
+            <span className="ml-2 font-semibold print:text-black">{formatNumber(problem.correctAnswer, i18n.language)}</span>
           </div>
         ))}
       </div>

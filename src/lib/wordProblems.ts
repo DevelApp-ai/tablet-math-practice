@@ -5,55 +5,29 @@ import {
   getExpectedAnswer,
   UnknownPosition,
 } from './mathUtils'
+import i18n from './i18n'
 
 // Phase 6 (plan §8.1): parameterized word-problem templates with theme/noun
 // substitution. Numbers reuse the existing difficulty ranges via generateProblem.
+// Story stems and theme nouns are translated via i18next so word problems
+// follow the learner's language (issue #64).
 
 type Theme = 'apples' | 'stickers' | 'marbles' | 'books' | 'balloons'
 
-interface Template {
-  operation: Exclude<OperationType, 'mixed'>
-  // Templates use {n1}, {n2}, {noun}, {total} placeholders. The story is
-  // written so the result is the natural unknown unless overridden.
-  build: (n1: number, n2: number, noun: string, total: number) => string
-}
-
-const TEMPLATES: Template[] = [
-  {
-    operation: 'addition',
-    build: (n1, n2, noun) =>
-      `Mia has ${n1} ${noun}. She gets ${n2} more. How many ${noun} does Mia have now?`,
-  },
-  {
-    operation: 'subtraction',
-    build: (n1, n2, noun) =>
-      `Liam has ${n1} ${noun}. He gives away ${n2}. How many ${noun} are left?`,
-  },
-  {
-    operation: 'multiplication',
-    build: (n1, n2, noun) =>
-      `There are ${n1} boxes with ${n2} ${noun} in each box. How many ${noun} are there in total?`,
-  },
-  {
-    operation: 'division',
-    build: (n1, n2, noun) =>
-      `${n1} ${noun} are shared equally among ${n2} friends. How many ${noun} does each friend get?`,
-  },
-]
-
-const THEME_NOUNS: Record<Theme, { singular: string; plural: string }> = {
-  apples: { singular: 'apple', plural: 'apples' },
-  stickers: { singular: 'sticker', plural: 'stickers' },
-  marbles: { singular: 'marble', plural: 'marbles' },
-  books: { singular: 'book', plural: 'books' },
-  balloons: { singular: 'balloon', plural: 'balloons' },
+const THEME_KEYS: Record<Theme, string> = {
+  apples: 'wordProblems.nouns.apples',
+  stickers: 'wordProblems.nouns.stickers',
+  marbles: 'wordProblems.nouns.marbles',
+  books: 'wordProblems.nouns.books',
+  balloons: 'wordProblems.nouns.balloons',
 }
 
 const THEMES: Theme[] = ['apples', 'stickers', 'marbles', 'books', 'balloons']
 
-function pluralize(count: number, theme: Theme): string {
-  const { singular, plural } = THEME_NOUNS[theme]
-  return count === 1 ? singular : plural
+function nounFor(count: number, theme: Theme): string {
+  // i18next count-based plural suffixes (_one/_other) pick the right
+  // noun form for languages that inflect after numbers.
+  return i18n.t(THEME_KEYS[theme], { count })
 }
 
 function randomElement<T>(arr: T[]): T {
@@ -73,11 +47,14 @@ export function generateWordProblem(
   options: { unknownPosition?: UnknownPosition } = {}
 ): Problem {
   const base = generateProblem(difficulty, operation)
-  const template = TEMPLATES.find((t) => t.operation === operation) ?? TEMPLATES[0]
   const theme = randomElement(THEMES)
-  const noun = pluralize(Math.max(base.operand1, base.operand2), theme)
+  const noun = nounFor(Math.max(base.operand1, base.operand2), theme)
 
-  const stem = template.build(base.operand1, base.operand2, noun, base.correctAnswer)
+  const stem = i18n.t(`wordProblems.${operation}`, {
+    n1: base.operand1,
+    n2: base.operand2,
+    noun,
+  })
 
   let problem: Problem = { ...base, wordProblem: stem }
   if (options.unknownPosition) {
@@ -98,28 +75,18 @@ export function generateWordProblem(
 function rewriteMissingOperand(problem: Problem, noun: string): string {
   const { operand1, operand2, operation, correctAnswer, unknownPosition } = problem
   if (unknownPosition === 'operand1') {
-    switch (operation) {
-      case 'addition':
-        return `Mia has some ${noun}. She gets ${operand2} more and now has ${correctAnswer}. How many ${noun} did Mia start with?`
-      case 'subtraction':
-        return `Liam had some ${noun}. He gave away ${operand2} and has ${correctAnswer} left. How many ${noun} did Liam start with?`
-      case 'multiplication':
-        return `Boxes of ${operand2} ${noun} each total ${correctAnswer}. How many boxes are there?`
-      case 'division':
-        return `${correctAnswer} ${noun} per friend, shared among ${operand2} friends. How many ${noun} were there in total?`
-    }
+    return i18n.t(`wordProblems.missingOperand1.${operation}`, {
+      n2: operand2,
+      total: correctAnswer,
+      noun,
+    })
   }
   if (unknownPosition === 'operand2') {
-    switch (operation) {
-      case 'addition':
-        return `Mia has ${operand1} ${noun}. She gets some more and now has ${correctAnswer}. How many ${noun} did she get?`
-      case 'subtraction':
-        return `Liam has ${operand1} ${noun}. He gives some away and has ${correctAnswer} left. How many ${noun} did he give away?`
-      case 'multiplication':
-        return `There are ${operand1} boxes. Each box has the same number of ${noun}, for a total of ${correctAnswer}. How many ${noun} are in each box?`
-      case 'division':
-        return `${operand1} ${noun} are shared equally so each friend gets ${correctAnswer}. How many friends are sharing?`
-    }
+    return i18n.t(`wordProblems.missingOperand2.${operation}`, {
+      n1: operand1,
+      total: correctAnswer,
+      noun,
+    })
   }
   return problem.wordProblem ?? ''
 }

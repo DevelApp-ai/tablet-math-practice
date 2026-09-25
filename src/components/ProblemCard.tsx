@@ -19,6 +19,7 @@ import { classifyError } from '@/lib/diagnostics/errorPatterns'
 import { getStructuredHints } from '@/lib/diagnostics/hintsEngine'
 import { Lightbulb, Check, X as XIcon, ArrowRight, SkipForward, SpeakerSimpleHigh, Stop } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { PenInput } from './PenInput'
 
@@ -51,6 +52,7 @@ export function ProblemCard({
   onNext,
   onStrokeSession,
 }: ProblemCardProps) {
+  const { t, i18n } = useTranslation()
   const [answer, setAnswer] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
@@ -146,10 +148,10 @@ export function ProblemCard({
               onClick={handleShowHint}
               className="gap-2"
               disabled={hintStep >= 3}
-              aria-label={hintStep === 0 ? 'Show hint' : 'Next hint'}
+              aria-label={hintStep === 0 ? t('problem.showHintAria') : t('problem.nextHintAria')}
             >
               <Lightbulb size={20} weight="duotone" className="text-accent" />
-              {hintStep === 0 ? 'Show Hint' : 'Next Hint'}
+              {hintStep === 0 ? t('problem.showHint') : t('problem.nextHint')}
             </Button>
             )}
           </div>
@@ -171,22 +173,22 @@ export function ProblemCard({
               />
               <p className="text-sm text-muted-foreground">
                 {submitted
-                  ? `Answer: ${formatNumber(problem.correctAnswer)}`
-                  : 'Enter your answer below'}
+                  ? t('problem.answerPrefix', { answer: formatNumber(problem.correctAnswer, i18n.language) })
+                  : t('problem.enterAnswerBelow')}
               </p>
             </div>
           ) : (
             <div className="flex items-center justify-center gap-4 md:gap-6 text-4xl md:text-6xl font-bold tracking-wide">
               <span className={problem.unknownPosition === 'operand1' ? 'text-primary' : ''}>
-                {problem.unknownPosition === 'operand1' && !submitted ? '?' : formatNumber(problem.operand1)}
+                {problem.unknownPosition === 'operand1' && !submitted ? '?' : formatNumber(problem.operand1, i18n.language)}
               </span>
               <span className="text-primary">{getOperationSymbol(problem.operation)}</span>
               <span className={problem.unknownPosition === 'operand2' ? 'text-primary' : ''}>
-                {problem.unknownPosition === 'operand2' && !submitted ? '?' : formatNumber(problem.operand2)}
+                {problem.unknownPosition === 'operand2' && !submitted ? '?' : formatNumber(problem.operand2, i18n.language)}
               </span>
               <span>=</span>
               <span className={problem.unknownPosition === 'result' || !problem.unknownPosition ? 'text-primary' : ''}>
-                {(problem.unknownPosition === 'result' || !problem.unknownPosition) && !submitted ? '?' : formatNumber(problem.correctAnswer)}
+                {(problem.unknownPosition === 'result' || !problem.unknownPosition) && !submitted ? '?' : formatNumber(problem.correctAnswer, i18n.language)}
               </span>
             </div>
           )}
@@ -237,9 +239,9 @@ export function ProblemCard({
                     startTimeRef.current = Date.now()
                   }
                 }}
-                placeholder="Your answer"
+                placeholder={t('session.answer')}
                 disabled={submitted}
-                aria-label={`Answer for problem ${problemNumber}`}
+                aria-label={t('problem.answerForProblemAria', { n: problemNumber })}
                 className={cn(
                   'max-w-xs md:max-w-sm',
                   submitted && isCorrect && 'border-success border-2 bg-success/10',
@@ -252,19 +254,19 @@ export function ProblemCard({
                   size="lg"
                   className="h-20 px-6 md:px-8 text-lg"
                   disabled={!answer.trim()}
-                  aria-label="Submit answer"
+                  aria-label={t('problem.submitAnswerAria')}
                 >
                   <Check size={24} weight="bold" />
-                  <span className="ml-2">Check</span>
+                  <span className="ml-2">{t('problem.check')}</span>
                 </Button>
               ) : (
                 <Button
                   onClick={handleNext}
                   size="lg"
                   className="h-20 px-6 md:px-8 text-lg"
-                  aria-label="Next problem"
+                  aria-label={t('problem.nextProblemAria')}
                 >
-                  <span className="mr-2">Next</span>
+                  <span className="mr-2">{t('session.next')}</span>
                   <ArrowRight size={24} weight="bold" />
                 </Button>
               )}
@@ -277,10 +279,10 @@ export function ProblemCard({
                   variant="ghost"
                   size="sm"
                   className="gap-2 text-muted-foreground"
-                  aria-label="Skip this problem"
+                  aria-label={t('problem.skipAria')}
                 >
                   <SkipForward size={20} />
-                  Skip this problem
+                  {t('problem.skip')}
                 </Button>
               </div>
             )}
@@ -300,12 +302,12 @@ export function ProblemCard({
                   {isCorrect ? (
                     <>
                       <Check size={32} weight="bold" />
-                      <span>Correct! Well done!</span>
+                      <span>{t('common.correctWellDone')}</span>
                     </>
                   ) : (
                     <>
                       <XIcon size={32} weight="bold" />
-                      <span>Not quite. The answer is {formatNumber(getExpectedAnswer(problem))}</span>
+                      <span>{t('problem.notQuiteAnswer', { answer: formatNumber(getExpectedAnswer(problem), i18n.language) })}</span>
                     </>
                   )}
                 </motion.div>

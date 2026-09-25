@@ -2,7 +2,8 @@
   "app": {
     "title": "नेवारी गणित अभ्यास",
     "subtitle": "स्वयंसिद्ध अभ्याससँग तपाईंको गणित क्षमता बढाउनुहोस्",
-    "tagline": "अभ्यासले निपुण बनाउँछ!"
+    "tagline": "अभ्यासले निपुण बनाउँछ!",
+    "header": "गणित अभ्यास"
   },
   "nav": {
     "home": "मुख्य पृष्ठ",
@@ -18,7 +19,10 @@
     "advanced": "उन्नत",
     "expert": "विशेषज्ञ",
     "select": "गाह्रो स्तर छान्नुहोस्",
-    "description": "तपाईंको सीप स्तर छान्नुहोस्"
+    "description": "तपाईंको सीप स्तर छान्नुहोस्",
+    "chooseLevel": "तपाईंको स्तर छान्नुहोस्",
+    "selectHint": "अभ्यास सुरु गर्न गाह्रो स्तर छान्नुहोस्",
+    "tapToStart": "सुरु गर्न ट्याप गर्नुहोस्"
   },
   "operations": {
     "addition": "जम्मा",
@@ -73,7 +77,19 @@
     "overallAccuracy": "कुल शुद्धता",
     "sessionsCompleted": "सत्रहरु पूरा",
     "bestSession": "उत्कृष्ट सत्र",
-    "progress": "प्रगति"
+    "progress": "प्रगति",
+    "howYouDid": "तपाईंले यसरी गर्नुभयो:",
+    "strokeReplay": "स्ट्रोक रिप्ले (शिक्षक)",
+    "problemN": "प्रश्न {{n}}",
+    "practiceAgain": "फेरि अभ्यास गर्नुहोस्",
+    "changeSettings": "सेटिङहरू परिवर्तन गर्नुहोस्",
+    "streakShort": "स्ट्रिक",
+    "accuracyOverTime": "समयअनुसार शुद्धता",
+    "accuracyPercent": "शुद्धता %",
+    "overallPerformance": "समग्र प्रदर्शन",
+    "totalSessions": "कुल सत्रहरू",
+    "avgAccuracy": "औसत शुद्धता",
+    "sessionN": "सत्र {{n}}"
   },
   "worksheet": {
     "title": "गणित कार्यपत्र",
@@ -85,7 +101,15 @@
     "generate": "नयाँ कार्यपत्र बनाउनुहोस्",
     "problemCount": "प्रश्नहरुको सङ्ख्या",
     "difficulty": "गाह्रो स्तर",
-    "operation": "अंकगणित प्रकार"
+    "operation": "अंकगणित प्रकार",
+    "preview": "वर्कशीट पूर्वावलोकन",
+    "problemsCount": "{{count}} प्रश्नहरू",
+    "generateNew": "नयाँ बनाउनुहोस्",
+    "printAction": "प्रिन्ट गर्नुहोस्",
+    "titleFull": "गणित अभ्यास वर्कशीट",
+    "nameField": "नाम: ___________________________",
+    "dateField": "मिति: ___________________________",
+    "answerKeyNote": "शिक्षक/अभिभावकको प्रयोगका लागि मात्र"
   },
   "settings": {
     "title": "सेटिङहरु",
@@ -141,7 +165,8 @@
     "of": "को",
     "to": "लाई",
     "for": "को लागि",
-    "with": "सँग"
+    "with": "सँग",
+    "correctWellDone": "सही! राम्रो!"
   },
   "actions": {
     "continue": "जारी राख्नुहोस्",
@@ -165,5 +190,69 @@
     "minutes": "{{count}} मिनेट",
     "hours": "{{count}} घण्टा",
     "format": "{{hours}}घण्टा {{minutes}}मिनेट {{seconds}}सेकेन्ड"
+  },
+  "problem": {
+    "showHint": "सङ्केत देखाउनुहोस्",
+    "nextHint": "अर्को सङ्केत",
+    "showHintAria": "सङ्केत देखाउनुहोस्",
+    "nextHintAria": "अर्को सङ्केत",
+    "answerPrefix": "उत्तर: {{answer}}",
+    "enterAnswerBelow": "तल आफ्नो उत्तर लेख्नुहोस्",
+    "check": "जाँच गर्नुहोस्",
+    "skip": "यो प्रश्न छोड्नुहोस्",
+    "skipAria": "यो प्रश्न छोड्नुहोस्",
+    "notQuiteAnswer": "पूर्ण सही भएन। सही उत्तर {{answer}} हो",
+    "submitAnswerAria": "उत्तर पेश गर्नुहोस्",
+    "nextProblemAria": "अर्को प्रश्न",
+    "answerForProblemAria": "प्रश्न {{n}} को उत्तर"
+  },
+  "wordProblems": {
+    "nouns": {
+      "apples_one": "स्याउ",
+      "apples_other": "स्याउ",
+      "stickers_one": "स्टिकर",
+      "stickers_other": "स्टिकर",
+      "marbles_one": "मार्बल",
+      "marbles_other": "मार्बल",
+      "books_one": "पोथी",
+      "books_other": "पोथी",
+      "balloons_one": "बेलुन",
+      "balloons_other": "बेलुन"
+    },
+    "addition": "मियासँग {{n1}} {{noun}} छन्। उसले थप {{n2}} पाउँछ। अहिले मियासँग कति {{noun}} छन्?",
+    "subtraction": "लियामसँग {{n1}} {{noun}} छन्। उसले {{n2}} दिन्छ। कति {{noun}} बाँकी छन्?",
+    "multiplication": "{{n1}} बाकसहरूमा प्रत्येकमा {{n2}} {{noun}} छन्। कुल कति {{noun}} छन्?",
+    "division": "{{n1}} {{noun}} {{n2}} सयामिद्वीच बराबर बाँडिएको छ। प्रत्येक सयामिले कति {{noun}} पाउँछ?",
+    "missingOperand1": {
+      "addition": "मियासँग केही {{noun}} छन्। उसले थप {{n2}} पाउँछ र अहिले {{total}} छन्। मियासँग सुरुमा कति {{noun}} थिए?",
+      "subtraction": "लियामसँग केही {{noun}} थिए। उसले {{n2}} दियो र {{total}} बाँकी छ। लियामसँग सुरुमा कति {{noun}} थिए?",
+      "multiplication": "प्रत्येकमा {{n2}} {{noun}} भएका बाकसहरूको जम्मा {{total}} छ। कति बाकस छन्?",
+      "division": "प्रत्येक सयामिलाई {{total}} {{noun}}, {{n2}} सयामिद्वीच बाँडिएको छ। कुल कति {{noun}} थिए?"
+    },
+    "missingOperand2": {
+      "addition": "मियासँग {{n1}} {{noun}} छन्। उसले थप केही पाउँछ र अहिले {{total}} छन्। उसले कति {{noun}} पायो?",
+      "subtraction": "लियामसँग {{n1}} {{noun}} छन्। उसले केही दिन्छ र {{total}} बाँकी छ। उसले कति {{noun}} दियो?",
+      "multiplication": "{{n1}} बाकस छन्। प्रत्येक बाकसमा बराबर {{noun}} छन्, कुल {{total}}। प्रत्येक बाकसमा कति {{noun}} छन्?",
+      "division": "{{n1}} {{noun}} बराबर बाँडिँदा प्रत्येक सयामिले {{total}} पाउँछ। कति सयामि बाँडिरहेका छन्?"
+    }
+  },
+  "difficultyDesc": {
+    "beginner": "एक अंकका प्रश्नहरू",
+    "intermediate": "दुई अंकका चुनौतीहरू",
+    "advanced": "बहु-अंक र दशमलव"
+  },
+  "landing": {
+    "practiceSettings": "अभ्यास सेटिङहरू",
+    "sessionMode": "सत्र मोड",
+    "mastery": "महारत",
+    "fluency": "द्रुतता (समयबद्ध)",
+    "modeDescription": "महारत: समय बिना, सङ्केत र सहायक सामग्रीसहित। द्रुतता: समयबद्ध दौड, सङ्केत बिना — गतिले बोनस XP दिन्छ।",
+    "verticalLayout": "ठाडो लेआउट (क्यारी/बरो सहितको स्तम्भ गणित)",
+    "manipulatives": "दृश्य सहायक सामग्री देखाउनुहोस् (टेन-फ्रेम, सङ्ख्या रेखा, एरे)",
+    "wordProblems": "शब्द समस्या (पढेर सुनाइने कथासहित)",
+    "scratchpad": "स्क्र्याचप्याड देखाउनुहोस् (रफ कार्य क्षेत्र)",
+    "palmRejection": "पाम रिजेक्शन (स्टाइलस प्रयोग गर्दा छुवाइ उपेक्षा गर्ने)",
+    "mistakeVault": "गल्ती भण्डार",
+    "viewPreviousSessions": "अघिल्ला सत्रहरू हेर्नुहोस्"
   }
 }
