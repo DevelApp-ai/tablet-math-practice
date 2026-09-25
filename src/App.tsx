@@ -123,7 +123,7 @@ function App() {
           <SessionScreen
             session={currentSession}
             currentProblem={currentProblem}
-            difficulty={difficulty}
+            difficulty={difficulty ?? currentSession.difficulty}
             operationType={operationType}
             history={sessionHistory}
             profile={userProfile}

@@ -9,7 +9,7 @@ import { AnimatePresence } from 'framer-motion'
 interface SessionScreenProps {
   session: PracticeSession
   currentProblem: Problem
-  difficulty: DifficultyLevel | null
+  difficulty: DifficultyLevel
   operationType: OperationType
   history: PracticeSession[]
   profile: UserProfile
