@@ -19,9 +19,6 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -42,26 +39,9 @@ jobs:
         run: npm run typecheck
 
       - name: Build
-        shell: bash
+        run: npm run build
         env:
-          GH_TOKEN: ${{ github.token }}
           NODE_ENV: production
-        run: |
-          set +e
-          npm run build > build-output.log 2>&1
-          code=$?
-          cat build-output.log
-          if [ $code -ne 0 ]; then
-            {
-              echo "## ❌ build failed (exit $code)"
-              echo ""
-              echo '```'
-              tail -n 80 build-output.log
-              echo '```'
-            } > build-diag.md
-            gh pr comment "${{ github.event.pull_request.number }}" --body-file build-diag.md --repo "$GITHUB_REPOSITORY" || echo "comment failed"
-            exit $code
-          fi
 
       - name: Test
         run: npm test
