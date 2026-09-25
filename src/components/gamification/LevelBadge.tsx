@@ -54,10 +54,10 @@ export const LevelBadge = ({
       </div>
       {showLabel && (
         <div>
-          <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+          <div className="text-sm font-semibold text-foreground">
             Level {level}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="text-xs text-muted-foreground">
             {icon}
           </div>
         </div>

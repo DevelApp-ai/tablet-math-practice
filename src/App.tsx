@@ -510,10 +510,10 @@ function App() {
 
       {/* Gamification Sidebar (Slide-in Panel) */}
       {showGamification && currentSession && (
-        <div className="fixed top-0 right-0 z-50 w-80 h-full bg-white dark:bg-gray-900 shadow-2xl transform translate-x-0 transition-transform duration-300 ease-in-out no-print">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="fixed top-0 right-0 z-50 w-80 h-full bg-card shadow-2xl transform translate-x-0 transition-transform duration-300 ease-in-out no-print">
+          <div className="p-6 border-b border-border">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="text-xl font-bold text-foreground">
                 {t('gamification.title')}
               </h2>
               <Button

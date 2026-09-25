@@ -39,31 +39,31 @@ export const BadgeDisplay = ({
     <div className={`w-full ${className}`}>
       <button
         onClick={toggleExpanded}
-        className="w-full flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        className="w-full flex items-center justify-between p-3 bg-card rounded-lg shadow-sm border border-border hover:bg-muted transition-colors"
       >
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold">🏆</span>
           </div>
           <div className="text-left">
-            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <div className="text-sm font-semibold text-foreground">
               Badges
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="text-xs text-muted-foreground">
               {earnedCount} of {totalCount} earned
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {expanded ? (
-            <span className="text-sm text-gray-500">Hide</span>
+            <span className="text-sm text-muted-foreground">Hide</span>
           ) : (
-            <span className="text-sm text-blue-600 dark:text-blue-400">
+            <span className="text-sm text-primary">
               View All
             </span>
           )}
           <svg
-            className={`w-4 h-4 text-gray-500 transition-transform ${
+            className={`w-4 h-4 text-muted-foreground transition-transform ${
               expanded ? 'rotate-180' : ''
             }`}
             fill="none"
@@ -90,7 +90,7 @@ export const BadgeDisplay = ({
                 className={`p-3 rounded-lg border-2 transition-all ${
                   badge.earned
                     ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10'
-                    : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 opacity-60'
+                    : 'border-border bg-muted opacity-60'
                 }`}
                 title={definition?.description || badge.name}
               >
@@ -102,10 +102,10 @@ export const BadgeDisplay = ({
                     </span>
                   )}
                 </div>
-                <div className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+                <div className="text-xs font-medium text-foreground truncate">
                   {definition?.name || badge.name}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                <div className="text-xs text-muted-foreground truncate">
                   {definition?.description || ''}
                 </div>
               </div>
