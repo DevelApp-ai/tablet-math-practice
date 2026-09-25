@@ -9,14 +9,16 @@ import { getExpectedAnswer } from '@/lib/mathUtils'
 import { StoredMistake, XP_REWARDS } from '@/lib/types'
 
 // jsdom does not implement crypto.randomUUID.
-if (typeof (globalThis.crypto as any)?.randomUUID !== 'function') {
+if (!('randomUUID' in globalThis.crypto)) {
   let counter = 0
-  ;(globalThis.crypto as any).randomUUID = () => `test-uuid-${++counter}`
+  Object.defineProperty(globalThis.crypto, 'randomUUID', {
+    value: () => `test-uuid-${++counter}`,
+  })
 }
 
 type HookApi = ReturnType<typeof usePracticeSession>
 interface RenderedHook {
-  result: { current: HookApi }
+  current: HookApi
 }
 
 /** Answer the current problem correctly and let the advance timeout run. */
