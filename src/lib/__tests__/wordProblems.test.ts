@@ -6,6 +6,7 @@ import {
 } from '../wordProblems'
 import { getExpectedAnswer, withUnknownPosition, checkAnswer } from '../mathUtils'
 import { Problem } from '../types'
+import i18n from '../i18n'
 
 function makeProblem(
   operand1: number,
@@ -22,6 +23,36 @@ describe('generateWordProblem', () => {
     const problem = generateWordProblem('beginner', 'addition')
     expect(problem.wordProblem).toBeTruthy()
     expect(problem.wordProblem!.length).toBeGreaterThan(10)
+  })
+
+  test('stems follow the active language', () => {
+    i18n.changeLanguage('da')
+    try {
+      const problem = generateWordProblem('beginner', 'addition', {
+        unknownPosition: 'result',
+      })
+      expect(problem.wordProblem).toContain('Mia har')
+      expect(problem.wordProblem).toContain('?')
+    } finally {
+      i18n.changeLanguage('en')
+    }
+  })
+
+  test('theme nouns use the active language', () => {
+    i18n.changeLanguage('de')
+    try {
+      const stems = new Set<string>()
+      for (let i = 0; i < 25; i++) {
+        const problem = generateWordProblem('beginner', 'addition', {
+          unknownPosition: 'result',
+        })
+        stems.add(problem.wordProblem!)
+      }
+      const joined = [...stems].join(' ')
+      expect(joined).toMatch(/Äpfel|Sticker|Murmeln|Bücher|Luftballons/)
+    } finally {
+      i18n.changeLanguage('en')
+    }
   })
 
   test('arithmetic stays consistent with the generated operands', () => {

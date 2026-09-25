@@ -209,5 +209,50 @@
     "palmRejection": "Handballenerkennung (Berührungen bei Stiftbenutzung ignorieren)",
     "mistakeVault": "Fehlerarchiv",
     "viewPreviousSessions": "Frühere Sitzungen ansehen"
+  },
+  "problem": {
+    "showHint": "Hinweis zeigen",
+    "nextHint": "Nächster Hinweis",
+    "showHintAria": "Hinweis zeigen",
+    "nextHintAria": "Nächster Hinweis",
+    "answerPrefix": "Ergebnis: {{answer}}",
+    "enterAnswerBelow": "Gib deine Antwort unten ein",
+    "check": "Prüfen",
+    "skip": "Diese Aufgabe überspringen",
+    "skipAria": "Diese Aufgabe überspringen",
+    "notQuiteAnswer": "Nicht ganz. Die Antwort ist {{answer}}",
+    "submitAnswerAria": "Antwort abschicken",
+    "nextProblemAria": "Nächste Aufgabe",
+    "answerForProblemAria": "Antwort für Aufgabe {{n}}"
+  },
+  "wordProblems": {
+    "nouns": {
+      "apples_one": "Apfel",
+      "apples_other": "Äpfel",
+      "stickers_one": "Sticker",
+      "stickers_other": "Sticker",
+      "marbles_one": "Murmel",
+      "marbles_other": "Murmeln",
+      "books_one": "Buch",
+      "books_other": "Bücher",
+      "balloons_one": "Luftballon",
+      "balloons_other": "Luftballons"
+    },
+    "addition": "Mia hat {{n1}} {{noun}}. Sie bekommt {{n2}} mehr. Wie viele {{noun}} hat Mia jetzt?",
+    "subtraction": "Liam hat {{n1}} {{noun}}. Er verschenkt {{n2}}. Wie viele {{noun}} bleiben übrig?",
+    "multiplication": "Es gibt {{n1}} Boxen mit je {{n2}} {{noun}}. Wie viele {{noun}} sind es insgesamt?",
+    "division": "{{n1}} {{noun}} werden gerecht unter {{n2}} Freunden aufgeteilt. Wie viele {{noun}} bekommt jeder Freund?",
+    "missingOperand1": {
+      "addition": "Mia hat einige {{noun}}. Sie bekommt {{n2}} mehr und hat jetzt {{total}}. Wie viele {{noun}} hatte Mia am Anfang?",
+      "subtraction": "Liam hatte einige {{noun}}. Er hat {{n2}} verschenkt und hat noch {{total}}. Wie viele {{noun}} hatte Liam am Anfang?",
+      "multiplication": "Boxen mit je {{n2}} {{noun}} ergeben zusammen {{total}}. Wie viele Boxen gibt es?",
+      "division": "{{total}} {{noun}} pro Freund, aufgeteilt unter {{n2}} Freunden. Wie viele {{noun}} waren es insgesamt?"
+    },
+    "missingOperand2": {
+      "addition": "Mia hat {{n1}} {{noun}}. Sie bekommt noch einige und hat jetzt {{total}}. Wie viele {{noun}} hat sie bekommen?",
+      "subtraction": "Liam hat {{n1}} {{noun}}. Er verschenkt einige und hat noch {{total}}. Wie viele {{noun}} hat er verschenkt?",
+      "multiplication": "Es gibt {{n1}} Boxen. Jede Box hat gleich viele {{noun}}, zusammen {{total}}. Wie viele {{noun}} sind in jeder Box?",
+      "division": "{{n1}} {{noun}} werden gerecht aufgeteilt, sodass jeder Freund {{total}} bekommt. Wie viele Freunde sind es?"
+    }
   }
 }

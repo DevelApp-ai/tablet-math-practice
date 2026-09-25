@@ -209,5 +209,50 @@
     "palmRejection": "Palmerejection (ignorér berøring ved penbrug)",
     "mistakeVault": "Fejlvault",
     "viewPreviousSessions": "Se Tidligere Sessioner"
+  },
+  "problem": {
+    "showHint": "Vis hint",
+    "nextHint": "Næste hint",
+    "showHintAria": "Vis hint",
+    "nextHintAria": "Næste hint",
+    "answerPrefix": "Svar: {{answer}}",
+    "enterAnswerBelow": "Skriv dit svar herunder",
+    "check": "Tjek",
+    "skip": "Spring opgaven over",
+    "skipAria": "Spring opgaven over",
+    "notQuiteAnswer": "Ikke helt. Svaret er {{answer}}",
+    "submitAnswerAria": "Indsend svar",
+    "nextProblemAria": "Næste opgave",
+    "answerForProblemAria": "Svar til opgave {{n}}"
+  },
+  "wordProblems": {
+    "nouns": {
+      "apples_one": "æble",
+      "apples_other": "æbler",
+      "stickers_one": "klistermærke",
+      "stickers_other": "klistermærker",
+      "marbles_one": "glaskugle",
+      "marbles_other": "glaskugler",
+      "books_one": "bog",
+      "books_other": "bøger",
+      "balloons_one": "ballon",
+      "balloons_other": "balloner"
+    },
+    "addition": "Mia har {{n1}} {{noun}}. Hun får {{n2}} flere. Hvor mange {{noun}} har Mia nu?",
+    "subtraction": "Liam har {{n1}} {{noun}}. Han giver {{n2}} væk. Hvor mange {{noun}} er der tilbage?",
+    "multiplication": "Der er {{n1}} kasser med {{n2}} {{noun}} i hver kasse. Hvor mange {{noun}} er der i alt?",
+    "division": "{{n1}} {{noun}} deles ligeligt mellem {{n2}} venner. Hvor mange {{noun}} får hver ven?",
+    "missingOperand1": {
+      "addition": "Mia har nogle {{noun}}. Hun får {{n2}} flere og har nu {{total}}. Hvor mange {{noun}} havde Mia fra starten?",
+      "subtraction": "Liam havde nogle {{noun}}. Han gav {{n2}} væk og har {{total}} tilbage. Hvor mange {{noun}} havde Liam fra starten?",
+      "multiplication": "Kasser med {{n2}} {{noun}} i hver har i alt {{total}}. Hvor mange kasser er der?",
+      "division": "{{total}} {{noun}} til hver ven, delt mellem {{n2}} venner. Hvor mange {{noun}} var der i alt?"
+    },
+    "missingOperand2": {
+      "addition": "Mia har {{n1}} {{noun}}. Hun får nogle flere og har nu {{total}}. Hvor mange {{noun}} fik hun?",
+      "subtraction": "Liam har {{n1}} {{noun}}. Han giver nogle væk og har {{total}} tilbage. Hvor mange {{noun}} gav han væk?",
+      "multiplication": "Der er {{n1}} kasser. Hver kasse har lige mange {{noun}}, i alt {{total}}. Hvor mange {{noun}} er der i hver kasse?",
+      "division": "{{n1}} {{noun}} deles ligeligt, så hver ven får {{total}}. Hvor mange venner er med?"
+    }
   }
 }

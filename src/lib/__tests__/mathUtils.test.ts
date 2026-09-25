@@ -234,4 +234,11 @@ describe('formatNumber', () => {
     expect(formatNumber(100)).toBe('100')
     expect(formatNumber(50)).toBe('50')
   })
+
+  test('is locale-aware when a locale is passed', () => {
+    expect(formatNumber(1000, 'da-DK')).toBe('1.000')
+    expect(formatNumber(1000, 'de-DE')).toBe('1.000')
+    // Nepali uses Devanagari digits
+    expect(formatNumber(1234.5, 'ne')).toBe('१,२३४.५')
+  })
 })

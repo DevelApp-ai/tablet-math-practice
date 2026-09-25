@@ -194,6 +194,12 @@ export function getHints(problem: Problem, step: number): string[] {
   return hints[operation].slice(0, step)
 }
 
-export function formatNumber(num: number): string {
-  return num.toLocaleString('en-US')
+/**
+ * Format a number with locale-aware digit and grouping conventions.
+ * The UI passes the current i18n language so numbers render with the
+ * learner's digits/separators (e.g. Nepali numerals, Danish "1.000").
+ * Defaults to 'en-US' so callers without a locale (and tests) are stable.
+ */
+export function formatNumber(num: number, locale: string = 'en-US'): string {
+  return num.toLocaleString(locale)
 }
