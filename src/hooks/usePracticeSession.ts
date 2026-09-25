@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   DifficultyLevel,
   OperationType,
@@ -82,6 +82,15 @@ export function usePracticeSession() {
   // Phase 5: captured ink per problem, for educator stroke replay.
   const [strokeSessions, setStrokeSessions] = useState<Record<string, StrokeSession>>({})
   const [userProfile, setUserProfile] = useState<UserProfile>(() => loadUserProfile())
+  // Mirror of userProfile for use inside callbacks/timeouts. Session
+  // completion runs ~800ms after the final submit (post success animation)
+  // and previously read the possibly-stale userProfile closure, silently
+  // overwriting the final answer's XP (found by the #71 integration tests).
+  const profileRef = useRef(userProfile)
+  const applyProfile = (next: UserProfile) => {
+    profileRef.current = next
+    setUserProfile(next)
+  }
 
   // Save user profile when it changes
   useEffect(() => {
@@ -116,7 +125,7 @@ export function usePracticeSession() {
   // Phase 6: build a problem set honoring the word-problems / missing-operand
   // toggles, falling back to plain generation otherwise.
   const buildProblems = (count: number, diff: DifficultyLevel, op: OperationType): Problem[] => {
-    const wordEnabled = userProfile.settings.wordProblemsEnabled
+    const wordEnabled = profileRef.current.settings.wordProblemsEnabled
     const operations: Exclude<OperationType, 'mixed'>[] =
       op === 'mixed' ? ['addition', 'subtraction', 'multiplication', 'division'] : [op as Exclude<OperationType, 'mixed'>]
     const problems: Problem[] = []
@@ -136,15 +145,15 @@ export function usePracticeSession() {
     const problems = buildProblems(problemCount, selectedDifficulty, operationType)
 
     // Update daily streak when starting a new session
-    const updatedDailyStreak = updateDailyStreak(userProfile.dailyStreak, new Date().toISOString().split('T')[0])
-    const updatedProfile = { ...userProfile, dailyStreak: updatedDailyStreak }
-    setUserProfile(updatedProfile)
+    const updatedDailyStreak = updateDailyStreak(profileRef.current.dailyStreak, new Date().toISOString().split('T')[0])
+    const updatedProfile = { ...profileRef.current, dailyStreak: updatedDailyStreak }
+    applyProfile(updatedProfile)
 
     // Check for return bonus
     const returnBonus = getReturnBonus(updatedProfile.dailyStreak)
     if (returnBonus > 0) {
       const profileWithBonus = addXPToProfile(updatedProfile, returnBonus)
-      setUserProfile({ ...profileWithBonus, dailyStreak: claimReturnBonus(profileWithBonus.dailyStreak) })
+      applyProfile({ ...profileWithBonus, dailyStreak: claimReturnBonus(profileWithBonus.dailyStreak) })
       toast.success(`+${returnBonus} XP Return Bonus!`, {
         description: 'Welcome back! Here is your return bonus.',
       })
@@ -285,8 +294,8 @@ export function usePracticeSession() {
 
     // Update user profile with XP
     if (isCorrect && xpEarned > 0) {
-      const updatedProfile = addXPToProfile(userProfile, xpEarned)
-      setUserProfile(updatedProfile)
+      const updatedProfile = addXPToProfile(profileRef.current, xpEarned)
+      applyProfile(updatedProfile)
 
       // Show XP earned toast
       toast.success(`+${xpEarned} XP!`, {
@@ -325,7 +334,7 @@ export function usePracticeSession() {
       // and the badge update both started from the same stale userProfile,
       // so the perfect-bonus XP was silently lost whenever badges were
       // earned in the same session.
-      let updatedProfile = updatePracticeCounters(userProfile, session.problems)
+      let updatedProfile = updatePracticeCounters(profileRef.current, session.problems)
 
       if (session.stats.accuracy === 100) {
         const perfectBonus = calculatePerfectSessionBonus(session.stats)
@@ -352,7 +361,7 @@ export function usePracticeSession() {
         })
       }
 
-      setUserProfile(updatedProfile)
+      applyProfile(updatedProfile)
 
       // Per-problem XP is already awarded in handleSubmitAnswer; do not add
       // calculateSessionXP again here (it re-sums the same per-problem XP and
@@ -439,16 +448,16 @@ export function usePracticeSession() {
   }
 
   const handlePresentationModeChange = (mode: PresentationMode) => {
-    setUserProfile({
-      ...userProfile,
-      settings: { ...userProfile.settings, presentationMode: mode },
+    applyProfile({
+      ...profileRef.current,
+      settings: { ...profileRef.current.settings, presentationMode: mode },
     })
   }
 
   const handleSettingsChange = (patch: SettingsPatch) => {
-    setUserProfile({
-      ...userProfile,
-      settings: { ...userProfile.settings, ...patch },
+    applyProfile({
+      ...profileRef.current,
+      settings: { ...profileRef.current.settings, ...patch },
     })
   }
 
