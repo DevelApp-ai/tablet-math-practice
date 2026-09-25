@@ -25,16 +25,16 @@ export const XPProgressBar = ({ profile, className = '' }: XPProgressBarProps) =
     <div className={`w-full ${className}`}>
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <span className="text-sm font-medium text-muted-foreground">
             Level {level}
           </span>
         </div>
-        <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
+        <div className="text-sm font-medium text-muted-foreground">
           {xp.toLocaleString()} XP
         </div>
       </div>
       
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+      <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
         <div
           className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-300 ease-out"
           style={{ width: `${Math.min(progressPercent, 100)}%` }}
@@ -42,16 +42,16 @@ export const XPProgressBar = ({ profile, className = '' }: XPProgressBarProps) =
       </div>
       
       <div className="flex justify-between mt-1">
-        <span className="text-xs text-gray-500 dark:text-gray-400">
+        <span className="text-xs text-muted-foreground">
           {currentLevelThreshold.toLocaleString()} XP
         </span>
-        <span className="text-xs text-gray-500 dark:text-gray-400">
+        <span className="text-xs text-muted-foreground">
           {nextLevelThreshold.toLocaleString()} XP
         </span>
       </div>
       
       {xpToNextLevel > 0 && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
+        <p className="text-xs text-muted-foreground mt-1 text-center">
           {xpToNextLevel.toLocaleString()} XP to Level {level + 1}
         </p>
       )}

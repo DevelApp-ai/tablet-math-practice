@@ -32,16 +32,16 @@ export const StreakDisplay = ({
 
   return (
     <div className={`w-full ${className}`}>
-      <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between p-3 bg-card rounded-lg shadow-sm border border-border">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold">🔥</span>
           </div>
           <div className="text-left">
-            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <div className="text-sm font-semibold text-foreground">
               Current Streak
             </div>
-            <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="text-xl font-bold text-foreground">
               {currentStreak}
             </div>
           </div>
@@ -49,10 +49,10 @@ export const StreakDisplay = ({
         
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <div className="text-sm font-semibold text-foreground">
               Longest Streak
             </div>
-            <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="text-xl font-bold text-foreground">
               {longestStreak}
             </div>
           </div>
@@ -92,12 +92,12 @@ export const StreakDisplay = ({
 
       {/* Daily streak info */}
       {dailyStreak.currentStreak > 0 && (
-        <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800">
-          <div className="text-xs text-blue-700 dark:text-blue-300">
+        <div className="mt-2 p-2 bg-primary/10 rounded-lg border border-primary/20">
+          <div className="text-xs text-primary">
             📅 Daily Streak: {dailyStreak.currentStreak} day{dailyStreak.currentStreak !== 1 ? 's' : ''}
           </div>
           {dailyStreak.currentStreak >= 5 && (
-            <div className="text-xs text-blue-500 mt-0.5">
+            <div className="text-xs text-primary mt-0.5">
               Keep it up! {30 - dailyStreak.currentStreak} more days for Month Streak badge
             </div>
           )}
