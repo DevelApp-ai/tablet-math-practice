@@ -1,478 +1,54 @@
-import { useState, useEffect } from 'react'
-import { DifficultyLevel, OperationType, Problem, PracticeSession, UserProfile, PresentationMode, SessionMode, StoredMistake } from '@/lib/types'
-import { generateProblems, generateProblem, withUnknownPosition, getExpectedAnswer } from '@/lib/mathUtils'
-import { generateWordProblem } from '@/lib/wordProblems'
-import {
-  recordMistake,
-  reviewMistake,
-  removeMistake as removeMistakeFromVault,
-  getDueMistakes,
-  buildRemediationProblems,
-  loadMistakeVault,
-  saveMistakeVault,
-  clearMistakeVault,
-} from '@/lib/repetition/spacedRepetition'
-import { DifficultySelect } from '@/components/DifficultySelect'
-import { OperationSelect } from '@/components/OperationSelect'
-import { ProblemCard } from '@/components/ProblemCard'
-import { StatsDashboard } from '@/components/StatsDashboard'
-import { PrintWorksheet } from '@/components/PrintWorksheet'
-import { SuccessAnimation } from '@/components/SuccessAnimation'
-import { XPProgressBar } from '@/components/gamification/XPProgressBar'
-import { LevelBadge } from '@/components/gamification/LevelBadge'
-import { BadgeDisplay } from '@/components/gamification/BadgeDisplay'
-import { StreakDisplay } from '@/components/gamification/StreakDisplay'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
 import { Badge as UIBadge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { CanvasGridSelector } from '@/components/canvas/CanvasGridSelector'
-import { StrokeReplayViewer } from '@/components/canvas/StrokeReplayViewer'
-import { MistakeVaultModal } from '@/components/workflow/MistakeVaultModal'
 import { LanguageSelector } from '@/components/LanguageSelector'
-import { StrokeSession } from '@/lib/ink/strokeStore'
-import { ArrowLeft, GraduationCap, ChartBar, Trophy, Vault, Target, Gauge } from '@phosphor-icons/react'
+import { MistakeVaultModal } from '@/components/workflow/MistakeVaultModal'
+import { SuccessAnimation } from '@/components/SuccessAnimation'
+import { LandingScreen } from '@/components/screens/LandingScreen'
+import { SessionScreen } from '@/components/screens/SessionScreen'
+import { StatsScreen } from '@/components/screens/StatsScreen'
+import { GamificationSidebar } from '@/components/gamification/GamificationSidebar'
+import { usePracticeSession } from '@/hooks/usePracticeSession'
+import { ArrowLeft, GraduationCap, Trophy } from '@phosphor-icons/react'
 import { AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { toast, Toaster } from 'sonner'
-import {
-  loadUserProfile,
-  saveUserProfile,
-  calculateXPForProblem,
-  addXPToProfile,
-  calculateNewStreak,
-  updateDailyStreak,
-  getReturnBonus,
-  claimReturnBonus,
-  checkBadges,
-  addBadgesToProfile,
-  updatePracticeCounters,
-  calculatePerfectSessionBonus,
-} from '@/lib/scoring'
+import { Toaster } from 'sonner'
 
 function App() {
   const { t } = useTranslation()
-  // Load session history and current session from localStorage
-  const [sessionHistory, setSessionHistory] = useState<PracticeSession[]>(() => {
-    try {
-      const saved = localStorage.getItem('session-history')
-      return saved ? JSON.parse(saved) : []
-    } catch {
-      return []
-    }
-  })
-  const [currentSession, setCurrentSession] = useState<PracticeSession | null>(() => {
-    try {
-      const saved = localStorage.getItem('current-session')
-      return saved ? JSON.parse(saved) : null
-    } catch {
-      return null
-    }
-  })
-  const [difficulty, setDifficulty] = useState<DifficultyLevel | null>(null)
-  const [operationType, setOperationType] = useState<OperationType>('addition')
-  const [sessionMode, setSessionMode] = useState<SessionMode>('mastery')
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [startTime, setStartTime] = useState<number | null>(null)
-  const [showStats, setShowStats] = useState(false)
+  const session = usePracticeSession()
   const [showGamification, setShowGamification] = useState(false)
   const [showVault, setShowVault] = useState(false)
-  const [mistakeVault, setMistakeVault] = useState<StoredMistake[]>(() => loadMistakeVault())
-  // Phase 5: captured ink per problem, for educator stroke replay.
-  const [strokeSessions, setStrokeSessions] = useState<Record<string, StrokeSession>>({})
   const [replayProblemId, setReplayProblemId] = useState<string | null>(null)
-  
-  // Load user profile for gamification
-  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    return loadUserProfile()
-  })
-
-  // Save user profile when it changes
-  useEffect(() => {
-    saveUserProfile(userProfile)
-  }, [userProfile])
-
-  // Save session history and current session to localStorage
-  useEffect(() => {
-    localStorage.setItem('session-history', JSON.stringify(sessionHistory))
-  }, [sessionHistory])
-  
-  useEffect(() => {
-    if (currentSession) {
-      localStorage.setItem('current-session', JSON.stringify(currentSession))
-    } else {
-      localStorage.removeItem('current-session')
-    }
-  }, [currentSession])
-
-  // Persist the Mistake Vault.
-  useEffect(() => {
-    saveMistakeVault(mistakeVault)
-  }, [mistakeVault])
-
-  // Start timer when problem changes
-  useEffect(() => {
-    if (currentSession && currentSession.problems[currentSession.currentProblemIndex]) {
-      setStartTime(Date.now())
-    }
-  }, [currentSession?.currentProblemIndex])
-
-  // Phase 6: build a problem set honoring the word-problems / missing-operand
-  // toggles, falling back to plain generation otherwise.
-  const buildProblems = (
-    count: number,
-    diff: DifficultyLevel,
-    op: OperationType
-  ): Problem[] => {
-    const wordEnabled = userProfile.settings.wordProblemsEnabled
-    const operations: Exclude<OperationType, 'mixed'>[] =
-      op === 'mixed' ? ['addition', 'subtraction', 'multiplication', 'division'] : [op as Exclude<OperationType, 'mixed'>]
-    const problems: Problem[] = []
-    for (let i = 0; i < count; i++) {
-      const operation = operations[Math.floor(Math.random() * operations.length)]
-      if (wordEnabled) {
-        problems.push(generateWordProblem(diff, operation))
-      } else {
-        problems.push(withUnknownPosition(generateProblem(diff, operation), diff))
-      }
-    }
-    return problems
-  }
-
-  const startSession = (selectedDifficulty: DifficultyLevel, problemCount: number = 20) => {
-    setDifficulty(selectedDifficulty)
-    const problems = buildProblems(problemCount, selectedDifficulty, operationType)
-    
-    // Update daily streak when starting a new session
-    const updatedDailyStreak = updateDailyStreak(userProfile.dailyStreak, new Date().toISOString().split('T')[0])
-    const updatedProfile = { ...userProfile, dailyStreak: updatedDailyStreak }
-    setUserProfile(updatedProfile)
-    
-    // Check for return bonus
-    const returnBonus = getReturnBonus(updatedProfile.dailyStreak)
-    if (returnBonus > 0) {
-      const profileWithBonus = addXPToProfile(updatedProfile, returnBonus)
-      setUserProfile({ ...profileWithBonus, dailyStreak: claimReturnBonus(profileWithBonus.dailyStreak) })
-      toast.success(`+${returnBonus} XP Return Bonus!`, {
-        description: 'Welcome back! Here is your return bonus.',
-      })
-    }
-    
-    const guidedMode = sessionMode === 'mastery'
-    const session: PracticeSession = {
-      id: crypto.randomUUID(),
-      difficulty: selectedDifficulty,
-      operationType,
-      problems,
-      currentProblemIndex: 0,
-      stats: {
-        totalProblems: problems.length,
-        correctAnswers: 0,
-        incorrectAnswers: 0,
-        accuracy: 0,
-        totalTime: 0,
-        averageTime: 0,
-        currentStreak: 0,
-        longestStreak: 0
-      },
-      startTime: Date.now(),
-      guidedMode,
-      sessionMode,
-    }
-    
-    setCurrentSession(session)
-    setStartTime(Date.now())
-  }
-
-  const startRemediationSession = () => {
-    const due = getDueMistakes(mistakeVault)
-    if (due.length === 0) {
-      toast.info('No mistakes due for review right now.')
-      return
-    }
-    const problems = buildRemediationProblems(
-      mistakeVault,
-      20,
-      (n) => generateProblems(n, 'intermediate', 'mixed')
-    )
-    const session: PracticeSession = {
-      id: crypto.randomUUID(),
-      difficulty: 'intermediate',
-      operationType: 'mixed',
-      problems,
-      currentProblemIndex: 0,
-      stats: {
-        totalProblems: problems.length,
-        correctAnswers: 0,
-        incorrectAnswers: 0,
-        accuracy: 0,
-        totalTime: 0,
-        averageTime: 0,
-        currentStreak: 0,
-        longestStreak: 0,
-      },
-      startTime: Date.now(),
-      guidedMode: true,
-      sessionMode: 'mastery',
-      isRemediation: true,
-    }
-    setDifficulty('intermediate')
-    setOperationType('mixed')
-    setShowVault(false)
-    setShowStats(false)
-    setCurrentSession(session)
-    setStartTime(Date.now())
-  }
-
-  const handleSubmitAnswer = (answer: number, hintsUsed: number) => {
-    if (!currentSession) return
-
-    const currentProblem = currentSession.problems[currentSession.currentProblemIndex]
-    // startTime may be null if the learner skips before focusing the answer
-    // field (the timer is started on focus or problem change). Fall back to
-    // "now" so the submit/skip always proceeds instead of being silently
-    // dropped (issue #61: skip did nothing when startTime was null).
-    const timeSpent = startTime === null ? 0 : Math.floor((Date.now() - startTime) / 1000)
-    const expected = getExpectedAnswer(currentProblem)
-    const isCorrect = Math.abs(answer - expected) < 0.01
-
-    const updatedProblem = {
-      ...currentProblem,
-      userAnswer: answer,
-      isCorrect,
-      timeSpent,
-      hintsUsed
-    }
-
-    // Phase 4: Mistake Vault.
-    if (currentSession.isRemediation) {
-      const matching = mistakeVault.find(
-        (m) =>
-          m.num1 === currentProblem.operand1 &&
-          m.num2 === currentProblem.operand2 &&
-          m.operation === currentProblem.operation
-      )
-      if (matching) {
-        setMistakeVault((prev) => reviewMistake(prev, matching.id, isCorrect))
-      }
-    } else if (!isCorrect) {
-      setMistakeVault((prev) => recordMistake(prev, currentProblem, answer))
-    }
-
-    const updatedProblems = [...currentSession.problems]
-    updatedProblems[currentSession.currentProblemIndex] = updatedProblem
-
-    const correctAnswers = updatedProblems.filter(p => p.isCorrect === true).length
-    const incorrectAnswers = updatedProblems.filter(p => p.isCorrect === false).length
-    const totalAnswered = correctAnswers + incorrectAnswers
-    const totalTime = updatedProblems.reduce((sum, p) => sum + (p.timeSpent || 0), 0)
-
-    // Calculate streak
-    const previousProblem = currentSession.problems[currentSession.currentProblemIndex - 1]
-    const previousWasCorrect = previousProblem ? previousProblem.isCorrect === true : false
-    const currentStreak = currentSession.stats.currentStreak || 0
-    const newStreak = calculateNewStreak(isCorrect, previousWasCorrect, currentStreak)
-    const longestStreak = Math.max(currentSession.stats.longestStreak || 0, newStreak)
-
-    // Calculate XP for this problem
-    const xpEarned = calculateXPForProblem(isCorrect, timeSpent * 1000, currentStreak)
-    
-    const updatedSession: PracticeSession = {
-      ...currentSession,
-      problems: updatedProblems,
-      stats: {
-        ...currentSession.stats,
-        correctAnswers,
-        incorrectAnswers,
-        accuracy: totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0,
-        totalTime,
-        averageTime: totalAnswered > 0 ? Math.round(totalTime / totalAnswered) : 0,
-        currentStreak: newStreak,
-        longestStreak: longestStreak
-      }
-    }
-
-    setCurrentSession(updatedSession)
-
-    // Update user profile with XP
-    if (isCorrect && xpEarned > 0) {
-      const updatedProfile = addXPToProfile(userProfile, xpEarned)
-      setUserProfile(updatedProfile)
-      
-      // Show XP earned toast
-      toast.success(`+${xpEarned} XP!`, {
-        description: isCorrect ? 'Correct answer!' : undefined,
-      })
-    }
-
-    if (isCorrect) {
-      setShowSuccess(true)
-      // Advance using the freshly-computed session so the recorded answer
-      // (correctAnswers, streak, XP, etc.) is preserved. Earlier this used a
-      // bare handleNextProblem() whose closure captured the pre-update
-      // currentSession, which discarded the just-recorded correct answer.
-      setTimeout(() => {
-        setShowSuccess(false)
-        advanceFromSession(updatedSession)
-      }, 800)
-    }
-  }
-
-  const handleNextProblem = () => {
-    if (!currentSession) return
-    advanceFromSession(currentSession)
-  }
-
-  const advanceFromSession = (session: PracticeSession) => {
-    if (session.currentProblemIndex < session.problems.length - 1) {
-      setCurrentSession({
-        ...session,
-        currentProblemIndex: session.currentProblemIndex + 1
-      })
-    } else {
-      // Session complete - update cumulative counters, award any perfect
-      // bonus, then check badges. A single updated profile is threaded
-      // through the whole chain: previously the perfect-bonus XP update
-      // and the badge update both started from the same stale userProfile,
-      // so the perfect-bonus XP was silently lost whenever badges were
-      // earned in the same session.
-      let updatedProfile = updatePracticeCounters(userProfile, session.problems)
-
-      if (session.stats.accuracy === 100) {
-        const perfectBonus = calculatePerfectSessionBonus(session.stats)
-        if (perfectBonus > 0) {
-          updatedProfile = addXPToProfile(updatedProfile, perfectBonus)
-          toast.success(`+${perfectBonus} XP Perfect Session Bonus!`, {
-            description: 'All answers correct!',
-          })
-        }
-      }
-
-      // Check for newly earned badges. The counters updated above already
-      // include this session's problems, so mastery / marathon / streak
-      // badges accumulate across sessions (issue #66).
-      const newBadges = checkBadges(session.stats, updatedProfile, session.problems)
-      if (newBadges.length > 0) {
-        updatedProfile = addBadgesToProfile(updatedProfile, newBadges)
-
-        newBadges.forEach((badge) => {
-          toast.success(`Badge Earned: ${badge.name}!`, {
-            description: badge.description,
-            duration: 5000,
-          })
-        })
-      }
-
-      setUserProfile(updatedProfile)
-      
-      // Per-problem XP is already awarded in handleSubmitAnswer; do not add
-      // calculateSessionXP again here (it re-sums the same per-problem XP and
-      // the perfect-session bonus, which would double-count).
-      setSessionHistory((prev) => [...(prev || []), session])
-      setShowStats(true)
-      toast.success('Session Complete!', {
-        description: `You scored ${session.stats.accuracy}%`
-      })
-    }
-  }
 
   const handleRestart = () => {
-    if (currentSession) {
-      const unanswered = currentSession.problems.filter(p => p.userAnswer === undefined).length
-      if (unanswered > 3) {
-        if (!window.confirm(`You have ${unanswered} unanswered problems. Exit anyway?`)) {
-          return
-        }
-      }
-    }
-    setCurrentSession(null)
-    setDifficulty(null)
-    setShowStats(false)
-    setStrokeSessions({})
+    session.restart()
     setReplayProblemId(null)
-    localStorage.removeItem('current-session')
   }
 
-  const handleNewSession = () => {
-    if (difficulty) {
-      startSession(difficulty)
-      setShowStats(false)
-    }
+  const handleStartRemediation = () => {
+    session.startRemediationSession()
+    setShowVault(false)
   }
 
-  const handleGenerateWorksheet = (count: number) => {
-    if (difficulty) {
-      const problems = buildProblems(count, difficulty, operationType)
-      if (currentSession) {
-        setCurrentSession({
-          ...currentSession,
-          problems,
-          currentProblemIndex: 0,
-          stats: {
-            ...currentSession.stats,
-            totalProblems: problems.length,
-            correctAnswers: 0,
-            incorrectAnswers: 0,
-            accuracy: 0,
-            totalTime: 0,
-            averageTime: 0,
-            currentStreak: 0,
-            longestStreak: 0
-          }
-        })
-      }
-    }
-  }
-
-  const handleSessionModeChange = (mode: SessionMode) => {
-    setSessionMode(mode)
-    if (currentSession) {
-      setCurrentSession({
-        ...currentSession,
-        sessionMode: mode,
-        guidedMode: mode === 'mastery',
-      })
-    }
-  }
-
-  const handleRemoveMistake = (mistakeId: string) => {
-    setMistakeVault((prev) => removeMistakeFromVault(prev, mistakeId))
-  }
-
-  const handleClearVault = () => {
-    setMistakeVault(clearMistakeVault())
-  }
-
-  const handleStrokeSession = (session: StrokeSession) => {
-    if (!currentSession) return
-    const problemId = currentSession.problems[currentSession.currentProblemIndex]?.id
-    if (!problemId) return
-    setStrokeSessions((prev) => ({ ...prev, [problemId]: session }))
-  }
-
-  const handlePresentationModeChange = (mode: PresentationMode) => {
-    setUserProfile({
-      ...userProfile,
-      settings: { ...userProfile.settings, presentationMode: mode },
-    })
-  }
-
-  const handleSettingsChange = (
-    patch: Partial<Pick<UserProfile['settings'], 'canvasBackground' | 'scratchpadEnabled' | 'palmRejection' | 'manipulativesEnabled' | 'wordProblemsEnabled'>>
-  ) => {
-    setUserProfile({
-      ...userProfile,
-      settings: { ...userProfile.settings, ...patch },
-    })
-  }
-
-  const currentProblem = currentSession?.problems[currentSession.currentProblemIndex]
+  const {
+    sessionHistory,
+    currentSession,
+    currentProblem,
+    difficulty,
+    operationType,
+    sessionMode,
+    showSuccess,
+    showStats,
+    mistakeVault,
+    strokeSessions,
+    userProfile,
+  } = session
 
   return (
     <div className="min-h-screen bg-background">
       <Toaster position="top-center" />
-      
+
       <header className="border-b bg-card/50 backdrop-blur no-print">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
@@ -480,23 +56,23 @@ function App() {
               <GraduationCap size={32} weight="duotone" className="text-primary" />
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('app.header')}</h1>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <LanguageSelector />
               {currentSession && !showStats && (
                 <div className="flex items-center gap-4">
                   <UIBadge variant="secondary" className="text-sm px-3 py-1">
-                  {difficulty ? t(`difficulty.${difficulty}`) : ''}
-                </UIBadge>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowGamification(!showGamification)}
-                  className="flex items-center gap-1"
-                >
-                  <Trophy size={18} />
-                  {t('gamification.title')}
-                </Button>
+                    {difficulty ? t(`difficulty.${difficulty}`) : ''}
+                  </UIBadge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowGamification(!showGamification)}
+                    className="flex items-center gap-1"
+                  >
+                    <Trophy size={18} />
+                    {t('gamification.title')}
+                  </Button>
                   <Button variant="ghost" size="sm" onClick={handleRestart}>
                     <ArrowLeft size={20} />
                     {t('session.exit')}
@@ -510,285 +86,77 @@ function App() {
 
       {/* Gamification Sidebar (Slide-in Panel) */}
       {showGamification && currentSession && (
-        <div className="fixed top-0 right-0 z-50 w-80 h-full bg-card shadow-2xl transform translate-x-0 transition-transform duration-300 ease-in-out no-print">
-          <div className="p-6 border-b border-border">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-foreground">
-                {t('gamification.title')}
-              </h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowGamification(false)}
-                className="p-1"
-              >
-                <span className="text-xl">×</span>
-              </Button>
-            </div>
-            
-            {/* User Profile Summary */}
-            <div className="space-y-4">
-              <LevelBadge profile={userProfile} showLabel={false} />
-              <XPProgressBar profile={userProfile} />
-              <StreakDisplay profile={userProfile} sessionStats={currentSession.stats} />
-              <BadgeDisplay profile={userProfile} showOnlyEarned={true} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Overlay for gamification panel */}
-      {showGamification && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 no-print"
-          onClick={() => setShowGamification(false)}
+        <GamificationSidebar
+          profile={userProfile}
+          sessionStats={currentSession.stats}
+          onClose={() => setShowGamification(false)}
         />
       )}
 
       <main className="container mx-auto px-4 py-8 md:py-12">
         {!difficulty ? (
-          <div className="space-y-8">
-            <DifficultySelect onSelect={startSession} />
-            
-            <Separator className="my-8" />
-            
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-center">{t('landing.practiceSettings')}</h3>
-              <OperationSelect selected={operationType} onSelect={setOperationType} />
-              
-              <div className="flex flex-col items-center gap-2 pt-4">
-                <Label className="text-base font-medium">{t('landing.sessionMode')}</Label>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant={sessionMode === 'mastery' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleSessionModeChange('mastery')}
-                    className="gap-1"
-                  >
-                    <Target size={16} />
-                    {t('landing.mastery')}
-                  </Button>
-                  <Button
-                    variant={sessionMode === 'fluency' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleSessionModeChange('fluency')}
-                    className="gap-1"
-                  >
-                    <Gauge size={16} />
-                    {t('landing.fluency')}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground text-center max-w-md">
-                  {t('landing.modeDescription')}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-center gap-3 pt-4">
-                <Switch
-                  id="vertical-mode"
-                  checked={userProfile.settings.presentationMode === 'vertical'}
-                  onCheckedChange={(checked) =>
-                    handlePresentationModeChange(checked ? 'vertical' : 'horizontal')
-                  }
-                />
-                <Label htmlFor="vertical-mode" className="text-base cursor-pointer">
-                  {t('landing.verticalLayout')}
-                </Label>
-              </div>
-
-              <div className="flex items-center justify-center gap-3 pt-4">
-                <Switch
-                  id="manipulatives-mode"
-                  checked={userProfile.settings.manipulativesEnabled}
-                  onCheckedChange={(checked) =>
-                    handleSettingsChange({ manipulativesEnabled: checked })
-                  }
-                />
-                <Label htmlFor="manipulatives-mode" className="text-base cursor-pointer">
-                  {t('landing.manipulatives')}
-                </Label>
-              </div>
-
-              <div className="flex items-center justify-center gap-3 pt-4">
-                <Switch
-                  id="word-problems-mode"
-                  checked={userProfile.settings.wordProblemsEnabled}
-                  onCheckedChange={(checked) =>
-                    handleSettingsChange({ wordProblemsEnabled: checked })
-                  }
-                />
-                <Label htmlFor="word-problems-mode" className="text-base cursor-pointer">
-                  {t('landing.wordProblems')}
-                </Label>
-              </div>
-
-              <div className="flex items-center justify-center gap-3 pt-4">
-                <Switch
-                  id="scratchpad-mode"
-                  checked={userProfile.settings.scratchpadEnabled}
-                  onCheckedChange={(checked) =>
-                    handleSettingsChange({ scratchpadEnabled: checked })
-                  }
-                />
-                <Label htmlFor="scratchpad-mode" className="text-base cursor-pointer">
-                  {t('landing.scratchpad')}
-                </Label>
-              </div>
-
-              <div className="flex items-center justify-center gap-3 pt-4">
-                <Switch
-                  id="palm-rejection"
-                  checked={userProfile.settings.palmRejection}
-                  onCheckedChange={(checked) =>
-                    handleSettingsChange({ palmRejection: checked })
-                  }
-                />
-                <Label htmlFor="palm-rejection" className="text-base cursor-pointer">
-                  {t('landing.palmRejection')}
-                </Label>
-              </div>
-
-              <div className="pt-4 flex justify-center">
-                <CanvasGridSelector
-                  value={userProfile.settings.canvasBackground}
-                  onChange={(background) =>
-                    handleSettingsChange({ canvasBackground: background })
-                  }
-                />
-              </div>
-            </div>
-
-            <Separator className="my-8" />
-            <div className="text-center">
-              <Button
-                variant="outline"
-                onClick={() => setShowVault(true)}
-                className="gap-2"
-              >
-                <Vault size={20} />
-                {t('landing.mistakeVault')}
-                {mistakeVault.length > 0 && (
-                  <UIBadge variant="destructive" className="ml-1">
-                    {mistakeVault.length}
-                  </UIBadge>
-                )}
-              </Button>
-            </div>
-
-            {sessionHistory && sessionHistory.length > 0 && (
-              <>
-                <Separator className="my-8" />
-                <div className="text-center">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowStats(true)}
-                    className="gap-2"
-                  >
-                    <ChartBar size={20} />
-                    {t('landing.viewPreviousSessions')}
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-        ) : showStats ? (
-          <div className="max-w-4xl mx-auto space-y-8">
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold">{t('feedback.sessionComplete')} \ud83c\udf89</h2>
-              <p className="text-muted-foreground">{t('stats.howYouDid')}</p>
-            </div>
-            
-            {currentSession && <StatsDashboard stats={currentSession.stats} history={sessionHistory} />}
-
-            {currentSession && Object.keys(strokeSessions).length > 0 && (
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-center">{t('stats.strokeReplay')}</h3>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {currentSession.problems
-                    .filter((p) => strokeSessions[p.id])
-                    .map((p, idx) => (
-                      <Button
-                        key={p.id}
-                        variant={replayProblemId === p.id ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setReplayProblemId(p.id)}
-                      >
-                        {t('stats.problemN', { n: idx + 1 })}
-                      </Button>
-                    ))}
-                </div>
-                {replayProblemId && strokeSessions[replayProblemId] && (
-                  <div className="max-w-2xl mx-auto">
-                    <StrokeReplayViewer session={strokeSessions[replayProblemId]} />
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="flex gap-4 justify-center">
-              <Button onClick={handleNewSession} size="lg" className="gap-2">
-                {t('stats.practiceAgain')}
-              </Button>
-              <Button onClick={handleRestart} variant="outline" size="lg">
-                {t('stats.changeSettings')}
-              </Button>
-            </div>
-          </div>
+          <LandingScreen
+            profile={userProfile}
+            operationType={operationType}
+            sessionMode={sessionMode}
+            vaultCount={mistakeVault.length}
+            hasHistory={sessionHistory.length > 0}
+            onStartSession={session.startSession}
+            onSelectOperation={session.setOperationType}
+            onChangeSessionMode={session.changeSessionMode}
+            onChangeSettings={session.changeSettings}
+            onChangePresentationMode={session.changePresentationMode}
+            onOpenVault={() => setShowVault(true)}
+            onViewStats={() => session.setShowStats(true)}
+          />
+        ) : showStats && currentSession ? (
+          <StatsScreen
+            session={currentSession}
+            history={sessionHistory}
+            strokeSessions={strokeSessions}
+            replayProblemId={replayProblemId}
+            onSelectReplay={setReplayProblemId}
+            onNewSession={session.newSession}
+            onRestart={handleRestart}
+          />
         ) : currentSession && currentProblem ? (
-          <div className="space-y-8">
-            <div className="flex justify-between items-center no-print">
-              <StatsDashboard stats={currentSession.stats} history={sessionHistory} />
-            </div>
-            
-            <Separator className="no-print" />
-            
-            <AnimatePresence mode="wait">
-              <ProblemCard
-                key={currentProblem.id}
-                problem={currentProblem}
-                problemNumber={currentSession.currentProblemIndex + 1}
-                totalProblems={currentSession.problems.length}
-                guidedMode={currentSession.guidedMode}
-                presentationMode={userProfile.settings.presentationMode}
-                canvasBackground={userProfile.settings.canvasBackground}
-                scratchpadEnabled={userProfile.settings.scratchpadEnabled}
-                palmRejection={userProfile.settings.palmRejection}
-                manipulativesEnabled={userProfile.settings.manipulativesEnabled}
-                onSubmit={handleSubmitAnswer}
-                onNext={handleNextProblem}
-                onStrokeSession={handleStrokeSession}
-              />
-            </AnimatePresence>
-
-            <div className="flex justify-center no-print">
-              <PrintWorksheet
-                problems={currentSession.problems}
-                difficulty={difficulty}
-                operation={operationType}
-                onGenerate={handleGenerateWorksheet}
-              />
-            </div>
-          </div>
+          <SessionScreen
+            session={currentSession}
+            currentProblem={currentProblem}
+            difficulty={difficulty}
+            operationType={operationType}
+            history={sessionHistory}
+            profile={userProfile}
+            onSubmit={session.submitAnswer}
+            onNext={session.nextProblem}
+            onStrokeSession={session.addStrokeSession}
+            onGenerateWorksheet={session.generateWorksheet}
+          />
         ) : null}
       </main>
 
       <AnimatePresence>
         {showSuccess && <SuccessAnimation />}
       </AnimatePresence>
-      
+
       {/* Screen reader announcements */}
       <div aria-live="polite" className="sr-only">
         {showSuccess && t('common.correctWellDone')}
-        {currentSession && currentProblem && t('session.problem', { current: currentSession.currentProblemIndex + 1, total: currentSession.problems.length })}
+        {currentSession &&
+          currentProblem &&
+          t('session.problem', {
+            current: currentSession.currentProblemIndex + 1,
+            total: currentSession.problems.length,
+          })}
       </div>
 
       <MistakeVaultModal
         open={showVault}
         onOpenChange={setShowVault}
         vault={mistakeVault}
-        onRemove={handleRemoveMistake}
-        onClearAll={handleClearVault}
-        onStartRemediation={startRemediationSession}
+        onRemove={session.removeMistake}
+        onClearAll={session.clearVault}
+        onStartRemediation={handleStartRemediation}
       />
     </div>
   )
