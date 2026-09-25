@@ -19,9 +19,6 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -33,27 +30,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set +e
-          npm ci > npm-ci-output.log 2>&1
-          code=$?
-          cat npm-ci-output.log
-          if [ $code -ne 0 ]; then
-            {
-              echo "## ❌ npm ci failed (exit $code)"
-              echo ""
-              echo '```'
-              tail -n 60 npm-ci-output.log
-              echo '```'
-              echo ""
-              echo "node: $(node --version), npm: $(npm --version)"
-            } > npm-ci-diag.md
-            gh pr comment "${{ github.event.pull_request.number }}" --body-file npm-ci-diag.md --repo "$GITHUB_REPOSITORY" || echo "comment failed"
-            exit $code
-          fi
+        run: npm ci
 
       - name: Lint
         run: npm run lint
