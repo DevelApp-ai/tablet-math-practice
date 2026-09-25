@@ -1,6 +1,6 @@
 import { Alert, AlertTitle, AlertDescription } from "./components/ui/alert";
 import { Button } from "./components/ui/button";
-import { AlertTriangleIcon, RefreshCwIcon, BugIcon } from "lucide-react";
+import { ArrowsClockwise as RefreshCwIcon, Bug as BugIcon, Warning as AlertTriangleIcon } from "@phosphor-icons/react";
 import { openErrorReport } from "./lib/diagnostics/errorReport";
 
 export const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => {
@@ -12,7 +12,7 @@ export const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; res
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Alert variant="destructive" className="mb-6">
-          <AlertTriangleIcon />
+          <AlertTriangleIcon size={24} />
           <AlertTitle>This app has encountered a runtime error</AlertTitle>
           <AlertDescription>
             Something unexpected happened while running the application. The error details are shown below. Use the button below to report this issue, or try again.
@@ -32,7 +32,7 @@ export const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; res
             className="flex-1"
             variant="default"
           >
-            <BugIcon />
+            <BugIcon size={24} />
             Report this error
           </Button>
           <Button
@@ -40,7 +40,7 @@ export const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; res
             className="flex-1"
             variant="outline"
           >
-            <RefreshCwIcon />
+            <RefreshCwIcon size={24} />
             Try Again
           </Button>
         </div>
