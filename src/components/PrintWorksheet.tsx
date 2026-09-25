@@ -17,7 +17,7 @@ interface PrintWorksheetProps {
 export function PrintWorksheet({ problems, difficulty, operation, onGenerate }: PrintWorksheetProps) {
   const [problemCount, setProblemCount] = useState('10')
   const [showDialog, setShowDialog] = useState(false)
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
 
   const handlePrint = () => {
     window.print()
@@ -84,7 +84,7 @@ function WorksheetContent({ problems, difficulty, operation }: {
   difficulty: string
   operation: string 
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <div className="space-y-6">
       <div className="text-center border-b-2 pb-4">
@@ -117,7 +117,7 @@ function WorksheetContent({ problems, difficulty, operation }: {
 }
 
 function AnswerKey({ problems }: { problems: Problem[] }) {
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <div className="space-y-6">
       <div className="text-center border-b-2 pb-4">
