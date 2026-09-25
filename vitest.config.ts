@@ -18,8 +18,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['src/lib/**/*.ts'],
-      exclude: ['node_modules/', 'src/lib/__tests__/']
+      include: ['src/lib/**/*.ts', 'src/hooks/**/*.ts'],
+      exclude: ['node_modules/', 'src/lib/__tests__/', 'src/hooks/__tests__/']
     }
   }
 })
