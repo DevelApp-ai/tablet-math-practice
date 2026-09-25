@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -33,15 +34,67 @@ jobs:
         run: npm ci
 
       - name: Lint
-        run: npm run lint
+        id: lint
+        run: |
+          set -o pipefail
+          npm run lint 2>&1 | tee lint.log
+        continue-on-error: true
 
       - name: Type-check
-        run: npm run typecheck
+        id: typecheck
+        run: |
+          set -o pipefail
+          npm run typecheck 2>&1 | tee typecheck.log
+        continue-on-error: true
 
       - name: Build
-        run: npm run build
+        id: build
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee build.log
         env:
           NODE_ENV: production
+        continue-on-error: true
 
       - name: Test
-        run: npm test
+        id: test
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee test.log
+        continue-on-error: true
+
+      - name: Report results
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          {
+            echo "## CI diagnostics (temporary)"
+            for f in lint typecheck build test; do
+              if [ -f "$f.log" ]; then
+                echo
+                echo "<details><summary>$f</summary>"
+                echo
+                echo '```'
+                tail -n 200 "$f.log"
+                echo '```'
+                echo
+                echo '</details>'
+              fi
+            done
+          } > comment.md
+          if [ -n "$PR_NUMBER" ]; then
+            gh pr comment "$PR_NUMBER" --body-file comment.md || true
+          fi
+          cat comment.md
+
+      - name: Enforce outcomes
+        if: always()
+        run: |
+          fail=0
+          [ "${{ steps.lint.outcome }}" = "success" ] || { echo "lint failed"; fail=1; }
+          [ "${{ steps.typecheck.outcome }}" = "success" ] || { echo "typecheck failed"; fail=1; }
+          [ "${{ steps.build.outcome }}" = "success" ] || { echo "build failed"; fail=1; }
+          [ "${{ steps.test.outcome }}" = "success" ] || { echo "test failed"; fail=1; }
+          exit $fail
