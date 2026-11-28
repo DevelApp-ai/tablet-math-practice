@@ -139,15 +139,28 @@ describe('withUnknownPosition', () => {
   })
 
   test('beginner favors the result position more often', () => {
-    let resultCount = 0
-    for (let i = 0; i < 100; i++) {
-      const problem = withUnknownPosition(
-        makeProblem(4, 3, 'addition', 7, undefined),
-        'beginner'
-      )
-      if (problem.unknownPosition === 'result') resultCount++
+    // The 100-sample loop below reads a 50/50 distribution from Math.random
+    // and can flake on unlucky runs (CI saw resultCount = 37). Seed a small
+    // deterministic PRNG so the distribution is stable across runs; the
+    // >40-of-100 expectation is unchanged.
+    let seed = 42
+    const randomSpy = vi.spyOn(Math, 'random').mockImplementation(() => {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0
+      return seed / 0x100000000
+    })
+    try {
+      let resultCount = 0
+      for (let i = 0; i < 100; i++) {
+        const problem = withUnknownPosition(
+          makeProblem(4, 3, 'addition', 7, undefined),
+          'beginner'
+        )
+        if (problem.unknownPosition === 'result') resultCount++
+      }
+      expect(resultCount).toBeGreaterThan(40)
+    } finally {
+      randomSpy.mockRestore()
     }
-    expect(resultCount).toBeGreaterThan(40)
   })
 })
 
